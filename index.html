@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão Cabine - Sistema de Produção</title>
+    <style>
+        :root {
+            --primary: #FFEF00;
+            --dark-blue: #34495e;
+            --vazio: #ff4d4d;
+            --cheio: #2ecc71;
+            --tenda-vazio: #f1c40f;
+            --tenda-cheio: #7f8c8d;
+            --processo: #3498db;
+        }
+
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: #f4f7f6; color: #333; overflow-x: hidden; }
+
+        /* HEADER */
+        .header { background: var(--primary); padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #000; position: sticky; top: 0; z-index: 1000; }
+        .header h1 { margin: 0; font-size: 18px; font-weight: bold; text-transform: uppercase; flex-grow: 1; text-align: center; }
+        .btn-home { background: #fff; border: 1px solid #000; padding: 6px 15px; cursor: pointer; font-weight: bold; border-radius: 4px; display: flex; align-items: center; gap: 5px; }
+        
+        .legend-bar { display: flex; gap: 5px; }
+        .legend-item { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-size: 10px; font-weight: bold; color: #fff; border: 1px solid rgba(0,0,0,0.2); }
+
+        /* MENU INICIAL */
+        #view-home { display: flex; height: 85vh; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; padding: 20px; }
+        .menu-block { 
+            width: 180px; height: 180px; background: #fff; border: 3px solid var(--dark-blue); 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            text-align: center; cursor: pointer; transition: 0.3s; border-radius: 12px; font-weight: bold;
+        }
+        .menu-block:hover { background: var(--primary); transform: scale(1.05); }
+
+        .view-container { display: none; padding: 15px; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* VISÃO LINHA */
+        .grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+        .car-card { border: 1px solid #eee; border-radius: 12px; padding: 15px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: relative; }
+        
+        @keyframes blink-blue {
+            0% { box-shadow: 0 0 5px var(--processo); }
+            50% { box-shadow: 0 0 25px var(--processo); background-color: #ebf5fb; }
+            100% { box-shadow: 0 0 5px var(--processo); }
+        }
+        .blink-ready { animation: blink-blue 1.5s infinite; border: 2px solid var(--processo) !important; }
+
+        .car-id { font-size: 24px; font-weight: 800; color: #222; }
+        .car-desc { font-size: 11px; color: #7f8c8d; font-weight: bold; text-transform: uppercase; float: right; }
+        .ordens-pill { background: #f0f0f0; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; margin: 10px 0; display: inline-block; }
+        
+        .carrinhos-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .mini-cart { width: 75px; height: 55px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(0,0,0,0.1); color: #fff; }
+        .mini-cart span { font-size: 12px; font-weight: 900; margin-bottom: 2px; }
+        
+        .st-v { background-color: var(--vazio); }
+        .st-c { background-color: var(--cheio); }
+        .st-vt { background-color: var(--tenda-vazio); color: #000; }
+        .st-ct { background-color: var(--tenda-cheio); }
+
+        .btn-group-vc { display: flex; gap: 1px; background: #fff; padding: 1px; border-radius: 3px; }
+        .btn-vc { border: 1px solid #ccc; background: #fff; font-size: 8px; padding: 1px 2px; cursor: pointer; font-weight: bold; }
+        .btn-vc.active-btn { background: #333; color: #fff; }
+
+        /* LAYOUT DA LINHA (MAPA) */
+        .map-wrapper { display: flex; justify-content: center; padding: 20px; overflow-x: auto; }
+        .map-container { position: relative; width: 850px; height: 980px; background: #fff; border: 1px solid #ccc; }
+        .map-station { position: absolute; border: 1px solid #000; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; }
+        .st-y { background: var(--primary); }
+        .st-g { background: #cccccc; }
+        
+        .car-marker { position: absolute; background: #fff; border: 1px solid #ccc; width: 90px; padding: 4px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-size: 10px; }
+        .m-row { display: flex; justify-content: space-between; border-top: 1px solid #eee; margin-top: 2px; padding-top: 2px; }
+        .m-btn { border: 1px solid #ccc; font-size: 8px; padding: 0 3px; cursor: pointer; background: #fff; }
+        .m-active-v { background: var(--vazio); color: #fff; }
+        .m-active-c { background: var(--cheio); color: #fff; }
+
+        /* TABELA PICKING */
+        .table-std { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; }
+        .table-std th { background: var(--dark-blue); color: #fff; padding: 12px; text-align: left; }
+        .table-std td { padding: 12px; border-bottom: 1px solid #eee; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; color: #fff; font-weight: bold; font-size: 10px; }
+        
+        .btn-pick { border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px; margin-right: 5px; }
+        .btn-proc { background: #f1c40f; }
+        .btn-fin { background: #3498db; color: #fff; }
+        .btn-ok { background: #2ecc71; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button class="btn-home" onclick="showView('home')">🏠 HOME</button>
+        <h1>Gestão Cabine</h1>
+        <div class="legend-bar">
+            <div class="legend-item" style="background:var(--vazio)">V</div>
+            <div class="legend-item" style="background:var(--cheio)">C</div>
+            <div class="legend-item" style="background:var(--tenda-vazio); color:#000">VT</div>
+            <div class="legend-item" style="background:var(--tenda-cheio)">CT</div>
+        </div>
+    </div>
+
+    <div id="view-home">
+        <div class="menu-block" onclick="showView('linha')"><span>🏭</span><div>VISÃO LINHA</div></div>
+        <div class="menu-block" onclick="showView('sentado')"><span>🚜</span><div>LAYOUT DA LINHA</div></div>
+        <div class="menu-block" onclick="showView('picking')"><span>📦</span><div>VISÃO PICKING</div></div>
+        <div class="menu-block" onclick="showView('config-linhas')"><span>📏</span><div>CONFIG. LINHAS</div></div>
+        <div class="menu-block" onclick="showView('config')"><span>⚙️</span><div>CONFIG. CARROS</div></div>
+    </div>
+
+    <div id="view-linha" class="view-container">
+        <div class="grid-cards" id="container-linha"></div>
+    </div>
+
+    <div id="view-picking" class="view-container">
+        <h3>Lista de Prioridade de Separação</h3>
+        <table class="table-std">
+            <thead><tr><th>Prio</th><th>Carro</th><th>Carrinho</th><th>Etapa Picking</th><th>Autonomia</th><th>Ações</th></tr></thead>
+            <tbody id="list-picking"></tbody>
+        </table>
+    </div>
+
+    <div id="view-sentado" class="view-container">
+        <div class="map-wrapper"><div class="map-container" id="map-root"></div></div>
+    </div>
+
+    <div id="view-config-linhas" class="view-container">
+        <div style="background:white;padding:15px;margin-bottom:10px;border-radius:8px;border:1px solid #ddd;">
+            <input type="text" id="line-name" placeholder="Nome da Linha">
+            <input type="number" id="line-takt" placeholder="Takt Time (min)">
+            <input type="number" id="line-shifts" placeholder="Turnos">
+            <button onclick="saveLine()">SALVAR</button>
+        </div>
+        <table class="table-std"><thead><tr><th>Linha</th><th>Takt</th><th>Turnos</th><th>Ações</th></tr></thead><tbody id="lines-body"></tbody></table>
+    </div>
+
+    <div id="view-config" class="view-container">
+        <div style="background:white;padding:15px;margin-bottom:10px;border-radius:8px;border:1px solid #ddd;">
+            <input type="number" id="inp-id" placeholder="Nº Carro">
+            <select id="inp-desc"><option value="CABBACKHOE">Cab Backhoe</option><option value="CABBLOADER">Cab Loader</option></select>
+            <input type="number" id="inp-ordens" placeholder="Ordens/Carrinho">
+            <input type="number" id="inp-fluxo" placeholder="Qtd Carrinhos">
+            <button onclick="saveCar()">SALVAR</button>
+        </div>
+        <table class="table-std"><thead><tr><th>Carro</th><th>Linha</th><th>Ordens</th><th>Fluxo</th><th>Ações</th></tr></thead><tbody id="cars-body"></tbody></table>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getDatabase, ref, onValue, update, set, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+        const firebaseConfig = { databaseURL: "https://carros-backhoe-default-rtdb.firebaseio.com" };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        const refCars = ref(db, "cabine_v12_final");
+        const refLines = ref(db, "linhas_v12_config");
+
+        let CARROS = {};
+        let LINHAS = {};
+
+        const MAP_STATIONS = [
+            {id:"LC3010", x:320, y:20, w:150, h:70, c:"st-y"}, {id:"LC3010B", x:470, y:20, w:140, h:70, c:"st-y"},
+            {id:"LC3020", x:320, y:90, w:150, h:80, c:"st-y"}, {id:"LC3030", x:320, y:170, w:150, h:80, c:"st-y"},
+            {id:"LC3040", x:320, y:250, w:150, h:80, c:"st-y"}, {id:"LC30-Quality", x:320, y:330, w:150, h:80, c:"st-y"},
+            {id:"Qualidade Backhoe", x:320, y:410, w:300, h:80, c:"st-g"}, {id:"Qualidade Loader", x:320, y:490, w:300, h:80, c:"st-g"},
+            {id:"LC10-Quality", x:320, y:570, w:150, h:80, c:"st-g"}, {id:"LC1040", x:320, y:650, w:150, h:80, c:"st-g"},
+            {id:"LC1030", x:320, y:730, w:150, h:80, c:"st-g"}, {id:"LC1020", x:320, y:810, w:150, h:80, c:"st-g"},
+            {id:"LC1010", x:320, y:890, w:150, h:70, c:"st-g"}, {id:"LC1010B", x:470, y:890, w:140, h:70, c:"st-g"}
+        ];
+
+        const CAR_POSS = {
+            "260":[620,20], "253":[220,100], "264":[480,120], "258":[220,190],
+            "267":[480,270], "255":[220,280], "256":[220,430], "367":[630,420], 
+            "261":[220,530], "262":[220,620], "388":[480,680], "266":[480,770], "259":[220,880]
+        };
+
+        window.showView = (v) => {
+            document.getElementById('view-home').style.display = (v === 'home' ? 'flex' : 'none');
+            document.querySelectorAll('.view-container').forEach(c => c.style.display = 'none');
+            if(v !== 'home') document.getElementById('view-' + v).style.display = 'block';
+        };
+
+        window.mudarStatus = (id, idx, st) => { 
+            const updates = {};
+            updates[`/status/${idx}`] = st;
+            if(st === 'C' || st === 'CT') updates[`/pickingState/${idx}`] = 0;
+            update(ref(db, `cabine_v12_final/${id}`), updates);
+        };
+
+        window.mudarPickingState = (id, idx, s) => { update(ref(db, `cabine_v12_final/${id}/pickingState`), { [idx]: s }); };
+
+        window.saveLine = () => {
+            const name = document.getElementById('line-name').value;
+            set(ref(db, `linhas_v12_config/${name}`), { name, takt: parseInt(document.getElementById('line-takt').value), shifts: parseInt(document.getElementById('line-shifts').value) });
+        };
+        window.saveCar = () => {
+            const id = document.getElementById('inp-id').value;
+            const f = parseInt(document.getElementById('inp-fluxo').value);
+            const car = { id: parseInt(id), desc: document.getElementById('inp-desc').value, ordens: parseInt(document.getElementById('inp-ordens').value), fluxo: f };
+            if(!CARROS[id] || CARROS[id].fluxo !== f) { car.status = Array(f).fill("C"); car.pickingState = Array(f).fill(0); }
+            update(ref(db, `cabine_v12_final/${id}`), car);
+        };
+        window.deleteData = (p) => { if(confirm("Excluir?")) remove(ref(db, p)); };
+
+        onValue(refLines, (snap) => {
+            LINHAS = snap.val() || {};
+            document.getElementById('lines-body').innerHTML = Object.values(LINHAS).map(l => `<tr><td>${l.name}</td><td>${l.takt}m</td><td>${l.shifts}</td><td><button onclick="deleteData('linhas_v12_config/${l.name}')">✖</button></td></tr>`).join('');
+        });
+
+        onValue(refCars, (snap) => {
+            CARROS = snap.val() || {};
+            const lista = Object.values(CARROS).sort((a,b) => a.id - b.id);
+            renderLinha(lista);
+            renderPicking(lista);
+            renderMapa(lista);
+            document.getElementById('cars-body').innerHTML = lista.map(c => `<tr><td>#${c.id}</td><td>${c.desc}</td><td>${c.ordens}</td><td>${c.fluxo}</td><td><button onclick="deleteData('cabine_v12_final/${c.id}')">✖</button></td></tr>`).join('');
+        });
+
+        function renderLinha(lista) {
+            document.getElementById('container-linha').innerHTML = lista.map(car => {
+                const isReady = car.pickingState && Object.values(car.pickingState).includes(2);
+                let carts = car.status.map((st, i) => {
+                    const css = st==='V'?'st-v':st==='VT'?'st-vt':st==='CT'?'st-ct':'st-c';
+                    return `<div class="mini-cart ${css}"><span>${i+1}</span><div class="btn-group-vc">
+                        <button class="btn-vc ${st==='V'?'active-btn':''}" onclick="mudarStatus(${car.id},${i},'V')">V</button>
+                        <button class="btn-vc ${st==='C'?'active-btn':''}" onclick="mudarStatus(${car.id},${i},'C')">C</button>
+                        <button class="btn-vc ${st==='VT'?'active-btn':''}" onclick="mudarStatus(${car.id},${i},'VT')">VT</button>
+                        <button class="btn-vc ${st==='CT'?'active-btn':''}" onclick="mudarStatus(${car.id},${i},'CT')">CT</button>
+                    </div></div>`;
+                }).join('');
+                return `<div class="car-card ${isReady?'blink-ready':''}"><span class="car-id">#${car.id}</span><span class="car-desc">${car.desc}</span><br><div class="ordens-pill">ORDENS: ${car.ordens}</div><div class="carrinhos-grid">${carts}</div></div>`;
+            }).join('');
+        }
+
+        function renderPicking(lista) {
+            let fila = [];
+            lista.forEach(car => {
+                const takt = LINHAS[car.desc]?.takt || 0;
+                const cheios = car.status.filter(s => s==='C'||s==='CT').length;
+                const autonomia = (cheios * car.ordens) * takt;
+                car.status.forEach((st, idx) => {
+                    if(st==='V'||st==='VT') fila.push({...car, idx, st, autonomia, pState: car.pickingState?.[idx]||0});
+                });
+            });
+            document.getElementById('list-picking').innerHTML = fila.sort((a,b)=>a.autonomia - b.autonomia).map((it, i) => `
+                <tr><td>${i+1}º</td><td>#${it.id}</td><td>C${it.idx+1}</td>
+                <td><span class="status-badge" style="background:${it.pState===1?'#f1c40f':it.pState===2?'#3498db':'#95a5a6'}">${it.pState===1?'PROCESSO':it.pState===2?'FINALIZADO':'AGUARDANDO'}</span></td>
+                <td><b>${Math.floor(it.autonomia/60)}h ${it.autonomia%60}m</b></td>
+                <td>
+                    <button class="btn-pick btn-proc" onclick="mudarPickingState(${it.id},${it.idx},1)">PROCESSO</button>
+                    <button class="btn-pick btn-fin" onclick="mudarPickingState(${it.id},${it.idx},2)">FINALIZAR</button>
+                    <button class="btn-pick btn-ok" onclick="mudarStatus(${it.id},${it.idx},'CT')">OK</button>
+                </td></tr>`).join('');
+        }
+
+        function renderMapa(lista) {
+            const root = document.getElementById("map-root");
+            root.innerHTML = MAP_STATIONS.map(s => `<div class="map-station ${s.c}" style="left:${s.x}px; top:${s.y}px; width:${s.w}px; height:${s.h}px;">${s.id}</div>`).join('');
+            lista.forEach(car => {
+                const pos = CAR_POSS[car.id]; if(!pos) return;
+                let indices = [];
+                car.status.forEach((st, idx) => { if(st==='C'||st==='CT') indices.push(idx); });
+                if(indices.length < 2) car.status.forEach((st, idx) => { if(!indices.includes(idx)) indices.push(idx); });
+                const finalIdx = indices.sort((a,b)=>a-b).slice(0,2);
+                
+                const div = document.createElement('div');
+                div.className = 'car-marker'; div.style.left = pos[0]+"px"; div.style.top = pos[1]+"px";
+                div.innerHTML = `<b>#${car.id}</b>` + finalIdx.map(idx => `
+                    <div class="m-row"><span>C${idx+1}</span><div>
+                        <button class="m-btn ${car.status[idx]==='V'?'m-active-v':''}" onclick="mudarStatus(${car.id},${idx},'V')">V</button>
+                        <button class="m-btn ${car.status[idx].includes('C')?'m-active-c':''}" onclick="mudarStatus(${car.id},${idx},'C')">C</button>
+                    </div></div>`).join('');
+                root.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>
