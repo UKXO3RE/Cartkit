@@ -3,279 +3,1563 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão Cabine - Sistema de Produção</title>
+    <title>Gestão Cabine - Supervisório Completo</title>
+    <!-- Biblioteca para exportar e importar Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
-            --primary: #FFEF00;
-            --dark-blue: #34495e;
-            --vazio: #ff4d4d;
-            --cheio: #2ecc71;
-            --tenda-vazio: #f1c40f;
-            --tenda-cheio: #7f8c8d;
-            --processo: #3498db;
+            /* Fundo geral cinza claro e cabeçalho amarelo claro */
+            --bg-base: #f1f5f9;
+            --bg-header: #fef08a;
+            --header-border: #facc15;
+            --header-text: #0f172a;
+
+            --bg-card: #ffffff;
+            --bg-card-hover: #f8fafc;
+            --bg-input: #ffffff;
+            --border-color: #e2e8f0;
+            --border-highlight: #cbd5e1;
+            
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            
+            --primary: #d97706;
+            --primary-hover: #b45309;
+            
+            --vazio: #e11d48;
+            --cheio: #059669;
+            --whv: #0284c7;
+            --whc: #2563eb;
+            --vt: #d97706;
+            --ct: #475569;
+            --linha-l: #059669;
+            
+            --alert-bg-red: rgba(225, 29, 72, 0.15); 
+            --alert-bg-yellow: rgba(217, 119, 6, 0.15); 
+            --andamento: #fef3c7;
         }
 
-        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: #f4f7f6; color: #333; overflow-x: hidden; }
+        * { box-sizing: border-box; }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+            margin: 0; 
+            background: var(--bg-base); 
+            color: var(--text-main); 
+            overflow-x: hidden; 
+            min-height: 100vh;
+        }
 
         /* HEADER */
-        .header { background: var(--primary); padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #000; position: sticky; top: 0; z-index: 1000; }
-        .header h1 { margin: 0; font-size: 18px; font-weight: bold; text-transform: uppercase; flex-grow: 1; text-align: center; }
-        .btn-home { background: #fff; border: 1px solid #000; padding: 6px 15px; cursor: pointer; font-weight: bold; border-radius: 4px; display: flex; align-items: center; gap: 5px; }
-        
-        .legend-bar { display: flex; gap: 5px; }
-        .legend-item { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-size: 10px; font-weight: bold; color: #fff; border: 1px solid rgba(0,0,0,0.2); }
+        .header { 
+            background: var(--bg-header); 
+            padding: 10px 24px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            border-bottom: 2px solid var(--header-border); 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000; 
+            height: 64px; 
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        .header h1 { 
+            margin: 0; 
+            font-size: 20px; 
+            font-weight: 900; 
+            letter-spacing: 0.05em; 
+            text-transform: uppercase; 
+            color: var(--header-text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-home { 
+            position: absolute; 
+            left: 24px; 
+            background: #ffffff; 
+            color: var(--header-text); 
+            border: 1px solid var(--header-border); 
+            padding: 8px 18px; 
+            cursor: pointer; 
+            font-weight: 800; 
+            font-size: 13px;
+            border-radius: 8px; 
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .btn-home:hover {
+            background: #fef9c3;
+            transform: translateY(-1px);
+        }
 
         /* MENU INICIAL */
-        #view-home { display: flex; height: 85vh; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; padding: 20px; }
+        #view-home { 
+            display: flex; 
+            min-height: calc(100vh - 64px); 
+            justify-content: center; 
+            align-items: center; 
+            gap: 16px; 
+            flex-wrap: wrap; 
+            padding: 32px 24px; 
+            box-sizing: border-box; 
+        }
         .menu-block { 
-            width: 180px; height: 180px; background: #fff; border: 3px solid var(--dark-blue); 
-            display: flex; flex-direction: column; justify-content: center; align-items: center; 
-            text-align: center; cursor: pointer; transition: 0.3s; border-radius: 12px; font-weight: bold;
+            width: 180px; 
+            height: 180px; 
+            background: var(--bg-card); 
+            border: 1.5px solid var(--border-color); 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            text-align: center; 
+            cursor: pointer; 
+            border-radius: 16px; 
+            font-weight: 800; 
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04); 
+            font-size: 13px; 
+            color: var(--text-main);
+            padding: 16px;
         }
-        .menu-block:hover { background: var(--primary); transform: scale(1.05); }
-
-        .view-container { display: none; padding: 15px; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* VISÃO LINHA */
-        .grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
-        .car-card { border: 1px solid #eee; border-radius: 12px; padding: 15px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: relative; }
-        
-        @keyframes blink-blue {
-            0% { box-shadow: 0 0 5px var(--processo); }
-            50% { box-shadow: 0 0 25px var(--processo); background-color: #ebf5fb; }
-            100% { box-shadow: 0 0 5px var(--processo); }
+        .menu-block:hover { 
+            background: var(--bg-card-hover); 
+            border-color: #f59e0b;
+            transform: translateY(-4px); 
+            box-shadow: 0 10px 20px -3px rgba(217, 119, 6, 0.15);
+            color: var(--primary);
         }
-        .blink-ready { animation: blink-blue 1.5s infinite; border: 2px solid var(--processo) !important; }
+        .menu-block span { 
+            font-size: 36px; 
+            margin-bottom: 12px; 
+            transition: transform 0.2s ease;
+        }
+        .menu-block:hover span {
+            transform: scale(1.12);
+        }
 
-        .car-id { font-size: 24px; font-weight: 800; color: #222; }
-        .car-desc { font-size: 11px; color: #7f8c8d; font-weight: bold; text-transform: uppercase; float: right; }
-        .ordens-pill { background: #f0f0f0; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; margin: 10px 0; display: inline-block; }
+        /* ESTILO RESET MANUAL */
+        .reset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px; padding: 10px 0; }
+        .reset-card { 
+            background: var(--bg-card); 
+            border: 1px solid var(--border-color); 
+            border-radius: 14px; 
+            padding: 18px; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04); 
+        }
+        .reset-card-header { 
+            margin-bottom: 15px; 
+            font-size: 18px; 
+            font-weight: 800; 
+            color: var(--primary); 
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .reset-card-header small { color: var(--text-muted); font-weight: normal; font-size: 14px; margin-left: 5px; }
+        .reset-item-row { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 10px; 
+            background: var(--bg-card-hover); 
+            border: 1px solid var(--border-color); 
+            border-radius: 8px; 
+            padding: 6px 12px; 
+            position: relative; 
+        }
+        .status-indicator-bar { width: 6px; height: 35px; border-radius: 3px; margin-right: 12px; }
+        .reset-item-label { font-weight: 800; font-size: 14px; flex-grow: 1; color: var(--text-main); }
+        .reset-btn-group { display: flex; gap: 6px; }
+        .btn-opt { 
+            border: 1px solid var(--border-color); 
+            background: #ffffff; 
+            padding: 6px 10px; 
+            border-radius: 6px; 
+            font-size: 11px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            min-width: 44px; 
+            text-align: center; 
+            color: var(--text-muted); 
+        }
+        .btn-opt:hover {
+            border-color: var(--border-highlight);
+            color: var(--text-main);
+        }
         
-        .carrinhos-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-        .mini-cart { width: 75px; height: 55px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(0,0,0,0.1); color: #fff; }
-        .mini-cart span { font-size: 12px; font-weight: 900; margin-bottom: 2px; }
-        
-        .st-v { background-color: var(--vazio); }
-        .st-c { background-color: var(--cheio); }
-        .st-vt { background-color: var(--tenda-vazio); color: #000; }
-        .st-ct { background-color: var(--tenda-cheio); }
+        /* CORES DOS BOTÕES ATIVOS */
+        .btn-opt.active-WHV { background: var(--whv); color: #fff; border-color: var(--whv); }
+        .btn-opt.active-WHC { background: var(--whc); color: #fff; border-color: var(--whc); }
+        .btn-opt.active-VT { background: var(--vt); color: #fff; border-color: var(--vt); }
+        .btn-opt.active-CT { background: var(--ct); color: #fff; border-color: var(--ct); }
+        .btn-opt.active-L { background: var(--linha-l); color: #fff; border-color: var(--linha-l); }
 
-        .btn-group-vc { display: flex; gap: 1px; background: #fff; padding: 1px; border-radius: 3px; }
-        .btn-vc { border: 1px solid #ccc; background: #fff; font-size: 8px; padding: 1px 2px; cursor: pointer; font-weight: bold; }
-        .btn-vc.active-btn { background: #333; color: #fff; }
+        /* CORES DAS BARRAS LATERAIS */
+        .bar-WHV { background-color: var(--whv); }
+        .bar-WHC { background-color: var(--whc); }
+        .bar-VT { background-color: var(--vt); }
+        .bar-CT { background-color: var(--ct); }
+        .bar-L { background-color: var(--linha-l); }
 
-        /* LAYOUT DA LINHA (MAPA) */
-        .map-wrapper { display: flex; justify-content: center; padding: 20px; overflow-x: auto; }
-        .map-container { position: relative; width: 850px; height: 980px; background: #fff; border: 1px solid #ccc; }
-        .map-station { position: absolute; border: 1px solid #000; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; }
-        .st-y { background: var(--primary); }
-        .st-g { background: #cccccc; }
-        
-        .car-marker { position: absolute; background: #fff; border: 1px solid #ccc; width: 90px; padding: 4px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-size: 10px; }
-        .m-row { display: flex; justify-content: space-between; border-top: 1px solid #eee; margin-top: 2px; padding-top: 2px; }
-        .m-btn { border: 1px solid #ccc; font-size: 8px; padding: 0 3px; cursor: pointer; background: #fff; }
-        .m-active-v { background: var(--vazio); color: #fff; }
-        .m-active-c { background: var(--cheio); color: #fff; }
+        /* LAYOUT SUPERVISÓRIO */
+        #view-sentado { height: calc(100vh - 64px); overflow: hidden; padding: 12px; box-sizing: border-box; }
+        .main-layout-supervisorio { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 12px; height: 100%; }
+        .sup-column { 
+            background: var(--bg-card); 
+            border: 1px solid var(--border-color); 
+            border-radius: 14px; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .sup-header { 
+            padding: 12px; 
+            text-align: center; 
+            font-weight: 900; 
+            color: white; 
+            font-size: 13px; 
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .sup-content { 
+            flex-grow: 1; 
+            overflow-y: auto; 
+            padding: 12px; 
+            background: #f8fafc; 
+        }
 
-        /* TABELA PICKING */
-        .table-std { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; }
-        .table-std th { background: var(--dark-blue); color: #fff; padding: 12px; text-align: left; }
-        .table-std td { padding: 12px; border-bottom: 1px solid #eee; }
-        .status-badge { padding: 4px 8px; border-radius: 4px; color: #fff; font-weight: bold; font-size: 10px; }
+        /* ANIMAÇÕES DE ALERTA */
+        @keyframes blink-red { 0% { background-color: var(--bg-card); } 50% { background-color: var(--alert-bg-red); } 100% { background-color: var(--bg-card); } }
+        .alert-blink { animation: blink-red 1s infinite !important; }
+        @keyframes blink-yellow { 0% { background-color: var(--bg-card); } 50% { background-color: var(--alert-bg-yellow); } 100% { background-color: var(--bg-card); } }
+        .warning-blink { animation: blink-yellow 1s infinite !important; }
+        .row-in-progress { background-color: var(--andamento) !important; font-weight: 600; }
+
+        /* MAPA */
+        .map-wrapper-super { transform: scale(0.65); transform-origin: top left; position: relative; width: 850px; height: 1000px; }
+        .map-container { position: relative; width: 100%; height: 100%; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; }
+        .map-station-box { 
+            position: absolute; 
+            border: 1px solid var(--border-color); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: 800; 
+            font-size: 12px; 
+            background: #ffffff; 
+            color: #0f172a;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .st-gray { background: #e2e8f0 !important; color: var(--text-muted) !important; border-color: #cbd5e1 !important; }
+        .car-marker-box { 
+            position: absolute; 
+            background-color: #ffffff; 
+            border: 2px solid var(--border-highlight); 
+            width: 110px; 
+            border-radius: 8px; 
+            font-size: 12px; 
+            z-index: 10; 
+            padding-bottom: 5px; 
+            box-sizing: border-box; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .marker-header { 
+            padding: 4px; 
+            font-weight: 800; 
+            text-align: center; 
+            border-bottom: 1px solid var(--border-color); 
+            background-color: #fef3c7; 
+            color: var(--primary);
+        }
+        .marker-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 10px; }
+        .status-circle { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 10px; }
+        .bg-v { background-color: var(--vazio); }
+        .bg-c { background-color: var(--cheio); }
+
+        /* CARDS / TABELAS */
+        .sup-card { 
+            background: #ffffff; 
+            border: 1px solid var(--border-color); 
+            margin-bottom: 8px; 
+            padding: 10px 12px; 
+            border-radius: 8px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            font-size: 13px; 
+            border-left: 4px solid var(--border-color); 
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            color: var(--text-main);
+        }
+        .sup-card small { color: var(--text-muted); }
+        .sup-badge { padding: 4px 10px; border-radius: 6px; font-weight: 800; color: white; min-width: 44px; text-align: center; font-size: 11px; }
+        .view-container { display: none; padding: 24px; animation: fadeIn 0.25s ease-out; }
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; }
         
-        .btn-pick { border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px; margin-right: 5px; }
-        .btn-proc { background: #f1c40f; }
-        .btn-fin { background: #3498db; color: #fff; }
-        .btn-ok { background: #2ecc71; color: #fff; }
+        .table-std { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 15px; 
+            background: #ffffff; 
+            border-radius: 8px; 
+            overflow: hidden; 
+            border: 1px solid var(--border-color);
+        }
+        .table-std th { 
+            background: #f8fafc; 
+            color: var(--text-muted); 
+            padding: 14px 16px; 
+            text-align: left; 
+            font-size: 12px; 
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap; 
+            border-bottom: 1px solid var(--border-color);
+        }
+        .table-std td { 
+            padding: 12px 16px; 
+            border-bottom: 1px solid var(--border-color); 
+            font-size: 14px; 
+            color: var(--text-main);
+        }
+        .table-std tr:hover td {
+            background-color: var(--bg-card-hover);
+        }
+        
+        .btn-picking { 
+            border: none; 
+            padding: 8px 12px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: 800; 
+            font-size: 12px; 
+            transition: all 0.2s ease;
+        }
+        .btn-finalizar { 
+            background: var(--cheio); 
+            color: #fff; 
+            border: none; 
+            padding: 8px 16px; 
+            border-radius: 6px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            transition: all 0.2s ease;
+        }
+        .btn-finalizar:hover { 
+            opacity: 0.9; 
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(5, 150, 105, 0.2);
+        }
+        .btn-danger { 
+            background: var(--vazio); 
+            color: #fff; 
+            border: none; 
+            padding: 8px 14px; 
+            border-radius: 6px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            transition: all 0.2s ease;
+        }
+        .btn-danger:hover { 
+            opacity: 0.9; 
+            transform: translateY(-1px);
+        }
+        
+        .config-card { 
+            background: #ffffff; 
+            padding: 24px; 
+            border-radius: 14px; 
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04); 
+            margin-bottom: 24px; 
+        }
+        .config-card h2 {
+            margin-top: 0;
+            margin-bottom: 18px;
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        input, select { 
+            padding: 10px 14px; 
+            background: #ffffff;
+            color: var(--text-main);
+            border: 1px solid var(--border-color); 
+            border-radius: 8px; 
+            margin-right: 10px; 
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        input:focus, select:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+        }
+        input[type="file"] {
+            background: #ffffff;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        
+        .grid-rota { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .prog-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 15px; }
+        .badge-total { 
+            background: #f8fafc; 
+            color: var(--primary); 
+            border: 1px solid var(--border-color); 
+            padding: 6px 16px; 
+            border-radius: 20px; 
+            font-size: 13px; 
+            font-weight: 800; 
+        }
+        .badge-rank { font-weight: 800; color: var(--primary); }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 900px) {
+            .grid-rota { grid-template-columns: 1fr; }
+            #view-home { flex-wrap: wrap; height: auto; }
+        }
     </style>
 </head>
 <body>
 
     <div class="header">
         <button class="btn-home" onclick="showView('home')">🏠 HOME</button>
-        <h1>Gestão Cabine</h1>
-        <div class="legend-bar">
-            <div class="legend-item" style="background:var(--vazio)">V</div>
-            <div class="legend-item" style="background:var(--cheio)">C</div>
-            <div class="legend-item" style="background:var(--tenda-vazio); color:#000">VT</div>
-            <div class="legend-item" style="background:var(--tenda-cheio)">CT</div>
-        </div>
+        <h1>GESTÃO CABINE</h1>
     </div>
 
     <div id="view-home">
-        <div class="menu-block" onclick="showView('linha')"><span>🏭</span><div>VISÃO LINHA</div></div>
-        <div class="menu-block" onclick="showView('sentado')"><span>🚜</span><div>LAYOUT DA LINHA</div></div>
-        <div class="menu-block" onclick="showView('picking')"><span>📦</span><div>VISÃO PICKING</div></div>
-        <div class="menu-block" onclick="showView('config-linhas')"><span>📏</span><div>CONFIG. LINHAS</div></div>
-        <div class="menu-block" onclick="showView('config')"><span>⚙️</span><div>CONFIG. CARROS</div></div>
+        <div class="menu-block" onclick="showView('sentado')"><span>📊</span>SUPERVISÓRIO LINHA</div>
+        <div class="menu-block" onclick="showView('rota-interna')"><span>🔄</span>ROTA INTERNA</div>
+        <div class="menu-block" onclick="showView('rota-externa')"><span>🚛</span>ROTA EXTERNA</div>
+        <div class="menu-block" onclick="showView('picking')"><span>📦</span>VISÃO PICKING</div>
+        <div class="menu-block" onclick="showView('programacao-ordens')"><span>📋</span>PROGRAMAÇÃO DE ORDENS</div>
+        <div class="menu-block" onclick="showView('historico')"><span>📜</span>HISTÓRICO GERAL</div>
+        <div class="menu-block" onclick="showView('reset-manual')"><span>⚙️</span>RESET MANUAL</div>
+        <div class="menu-block" onclick="showView('config-linhas')"><span>📏</span>CONFIG. LINHAS</div>
+        <div class="menu-block" onclick="showView('config-carros')"><span>🚜</span>CONFIG. CARROS</div>
     </div>
 
-    <div id="view-linha" class="view-container">
-        <div class="grid-cards" id="container-linha"></div>
-    </div>
-
-    <div id="view-picking" class="view-container">
-        <h3>Lista de Prioridade de Separação</h3>
-        <table class="table-std">
-            <thead><tr><th>Prio</th><th>Carro</th><th>Carrinho</th><th>Etapa Picking</th><th>Autonomia</th><th>Ações</th></tr></thead>
-            <tbody id="list-picking"></tbody>
-        </table>
+    <div id="view-reset-manual" class="view-container">
+        <div class="config-card">
+            <h2>Reset Manual de Status</h2>
+            <div id="reset-manual-grid" class="reset-grid"></div>
+        </div>
     </div>
 
     <div id="view-sentado" class="view-container">
-        <div class="map-wrapper"><div class="map-container" id="map-root"></div></div>
+        <div class="main-layout-supervisorio">
+            <div class="sup-column">
+                <div class="sup-header" style="background: var(--linha-l);">LINHA DE PRODUÇÃO</div>
+                <div class="sup-content" style="position: relative;">
+                    <div class="map-wrapper-super"><div class="map-container" id="map-root"></div></div>
+                </div>
+            </div>
+            <div class="sup-column" id="col-tenda">
+                <div class="sup-header" style="background: #475569;">TENDA (VT / CT)</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex-grow: 1; overflow: hidden; padding: 8px; background: #f8fafc;">
+                    <div style="display: flex; flex-direction: column; height: 100%; overflow: hidden; background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div style="padding: 8px 10px; text-align: center; font-weight: 800; font-size: 11px; letter-spacing: 0.05em; background: var(--vt); color: white; border-radius: 6px 6px 0 0; text-transform: uppercase;">TENDA VT</div>
+                        <div class="sup-content" id="sup-tenda-vt-content" style="padding: 8px; overflow-y: auto; flex-grow: 1;"></div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; height: 100%; overflow: hidden; background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div style="padding: 8px 10px; text-align: center; font-weight: 800; font-size: 11px; letter-spacing: 0.05em; background: var(--ct); color: white; border-radius: 6px 6px 0 0; text-transform: uppercase;">TENDA CT</div>
+                        <div class="sup-content" id="sup-tenda-ct-content" style="padding: 8px; overflow-y: auto; flex-grow: 1;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="sup-column" id="col-wh">
+                <div class="sup-header" style="background: #1e3a8a;">WAREHOUSE (WHV / WHC)</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex-grow: 1; overflow: hidden; padding: 8px; background: #f8fafc;">
+                    <div style="display: flex; flex-direction: column; height: 100%; overflow: hidden; background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div style="padding: 8px 10px; text-align: center; font-weight: 800; font-size: 11px; letter-spacing: 0.05em; background: var(--whv); color: white; border-radius: 6px 6px 0 0; text-transform: uppercase;">WAREHOUSE WHV</div>
+                        <div class="sup-content" id="sup-wh-whv-content" style="padding: 8px; overflow-y: auto; flex-grow: 1;"></div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; height: 100%; overflow: hidden; background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div style="padding: 8px 10px; text-align: center; font-weight: 800; font-size: 11px; letter-spacing: 0.05em; background: var(--whc); color: white; border-radius: 6px 6px 0 0; text-transform: uppercase;">WAREHOUSE WHC</div>
+                        <div class="sup-content" id="sup-wh-whc-content" style="padding: 8px; overflow-y: auto; flex-grow: 1;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- HISTÓRICO GERAL -->
+    <div id="view-historico" class="view-container">
+        <div class="config-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <h2>Histórico Geral de Movimentações</h2>
+                <button onclick="exportToExcel()" style="background: #059669; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 800;">📥 BAIXAR EXCEL</button>
+            </div>
+            <div class="table-responsive" style="max-height: 520px; overflow-y: auto;">
+                <table class="table-std" id="table-historico">
+                    <thead>
+                        <tr>
+                            <th>DATA / HORA</th>
+                            <th>CARRO</th>
+                            <th>WAREHOUSE</th>
+                            <th>LINHA</th>
+                            <th>STATUS ATRIBUÍDO</th>
+                            <th>SEQUENCIAL</th>
+                            <th>ORDEM</th>
+                            <th>LISTA</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historico-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROTA INTERNA -->
+    <div id="view-rota-interna" class="view-container">
+        <div class="grid-rota">
+            <!-- Retirada L -> VT SEM sequencial, ordem, lista -->
+            <div class="config-card">
+                <h2>Retirada (L → VT)</h2>
+                <div class="table-responsive">
+                    <table class="table-std">
+                        <thead>
+                            <tr>
+                                <th>CARRO</th>
+                                <th>WH</th>
+                                <th>AÇÃO</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-rota-interna-l"></tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Entrega CT -> L COM sequencial, ordem, lista -->
+            <div class="config-card">
+                <h2>Entrega (CT → L)</h2>
+                <div class="table-responsive">
+                    <table class="table-std">
+                        <thead>
+                            <tr>
+                                <th>CARRO</th>
+                                <th>WH</th>
+                                <th>SEQUENCIAL</th>
+                                <th>ORDEM</th>
+                                <th>LISTA</th>
+                                <th>AÇÃO</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-rota-interna-ct"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROTA EXTERNA -->
+    <div id="view-rota-externa" class="view-container">
+        <div class="grid-rota">
+            <!-- Recolha Vazios VT -> WHV SEM sequencial, ordem, lista -->
+            <div class="config-card">
+                <h2>Recolha Vazios (VT → WHV)</h2>
+                <div class="table-responsive">
+                    <table class="table-std">
+                        <thead>
+                            <tr>
+                                <th>CARRO</th>
+                                <th>WH</th>
+                                <th>AÇÃO</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-rota-vt"></tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Entrega Cheios WHC -> CT COM sequencial, ordem, lista -->
+            <div class="config-card">
+                <h2>Entrega Cheios (WHC → CT)</h2>
+                <div class="table-responsive">
+                    <table class="table-std">
+                        <thead>
+                            <tr>
+                                <th>CARRO</th>
+                                <th>WH</th>
+                                <th>SEQUENCIAL</th>
+                                <th>ORDEM</th>
+                                <th>LISTA</th>
+                                <th>AÇÃO</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-rota-whc"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PICKING -->
+    <div id="view-picking" class="view-container">
+        <!-- SEÇÃO 1: EM ANDAMENTO -->
+        <div class="config-card" style="border-left: 5px solid #059669;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h2 style="margin: 0; color: #059669;">🟢 EM ANDAMENTO (<span id="count-picking-andamento">0</span>)</h2>
+            </div>
+            <div class="table-responsive">
+                <table class="table-std">
+                    <thead>
+                        <tr>
+                            <th>CARRO/CART</th>
+                            <th>WAREHOUSE</th>
+                            <th>LINHA</th>
+                            <th>SEQUENCIAL</th>
+                            <th>ORDEM</th>
+                            <th>LISTA</th>
+                            <th>STATUS</th>
+                            <th>PROCESSO</th>
+                        </tr>
+                    </thead>
+                    <tbody id="picking-andamento-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 2: AGUARDANDO PICKING -->
+        <div class="config-card" style="border-left: 5px solid #e11d48;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h2 style="margin: 0; color: #e11d48;">🔴 AGUARDANDO PICKING (<span id="count-picking-aguardando">0</span>)</h2>
+            </div>
+            <div class="table-responsive">
+                <table class="table-std">
+                    <thead>
+                        <tr>
+                            <th>RANK</th>
+                            <th>CARRO/CART</th>
+                            <th>WAREHOUSE</th>
+                            <th>LINHA</th>
+                            <th>SEQUENCIAL</th>
+                            <th>ORDEM</th>
+                            <th>LISTA</th>
+                            <th>STATUS</th>
+                            <th>PROCESSO</th>
+                        </tr>
+                    </thead>
+                    <tbody id="picking-aguardando-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROGRAMAÇÃO -->
+    <div id="view-programacao-ordens" class="view-container">
+        <div class="config-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <h2>Programação de Ordens (Importação Excel)</h2>
+                <div>
+                    <span class="badge-total">Total Importado: <span id="total-registros-prog">0</span> registros</span>
+                </div>
+            </div>
+            
+            <div class="prog-actions">
+                <input type="file" id="excel-file-inp" accept=".xlsx, .xls">
+                <button class="btn-finalizar" onclick="importarProgramacaoExcel()" style="background: #f59e0b; color: #0f172a;">📥 IMPORTAR EXCEL</button>
+                <button class="btn-danger" onclick="limparProgramacao()">🗑️ LIMPAR PROGRAMAÇÃO</button>
+                <input type="text" id="busca-programacao" placeholder="🔍 Buscar por Carro, Seq, Ordem, Lista..." oninput="filtrarProgramacao()" style="flex-grow: 1; min-width: 220px;">
+            </div>
+
+            <div class="table-responsive" style="max-height: 520px; overflow-y: auto; margin-top: 15px;">
+                <table class="table-std" id="table-programacao">
+                    <thead>
+                        <tr>
+                            <th>CARRO</th>
+                            <th>SEQUENCIAL</th>
+                            <th>ORDEM</th>
+                            <th>LISTA</th>
+                            <th>DATA/HORA DA IMPORTAÇÃO</th>
+                            <th>AÇÃO</th>
+                        </tr>
+                    </thead>
+                    <tbody id="programacao-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIGURAR CARROS -->
+    <div id="view-config-carros" class="view-container">
+        <div class="config-card">
+            <h2>Configurar Carros</h2>
+            <input type="number" id="car-id-inp" placeholder="Nº Carro">
+            <select id="car-wh-sel">
+                <option value="WH1">WH1</option>
+                <option value="WH2">WH2</option>
+            </select>
+            <select id="car-line-sel"></select>
+            <input type="number" id="car-ordens-inp" placeholder="Ordens">
+            <input type="number" id="car-fluxo-inp" placeholder="Fluxo">
+            <button class="btn-finalizar" onclick="saveCar()">SALVAR</button>
+            <div class="table-responsive">
+                <table class="table-std"><thead><tr><th>ID</th><th>WH</th><th>LINHA</th><th>ORDENS</th><th>FLUXO</th><th>AÇÃO</th></tr></thead><tbody id="table-carros-body"></tbody></table>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIGURAR LINHAS -->
     <div id="view-config-linhas" class="view-container">
-        <div style="background:white;padding:15px;margin-bottom:10px;border-radius:8px;border:1px solid #ddd;">
-            <input type="text" id="line-name" placeholder="Nome da Linha">
-            <input type="number" id="line-takt" placeholder="Takt Time (min)">
-            <input type="number" id="line-shifts" placeholder="Turnos">
-            <button onclick="saveLine()">SALVAR</button>
+        <div class="config-card">
+            <h2>Configurar Linhas</h2>
+            <input type="text" id="line-name-inp" placeholder="Linha">
+            <input type="number" id="line-takt-inp" placeholder="Takt Time">
+            <input type="number" id="line-shifts-inp" placeholder="Turnos">
+            <button class="btn-finalizar" onclick="saveLine()">SALVAR</button>
+            <div class="table-responsive">
+                <table class="table-std"><thead><tr><th>LINHA</th><th>TAKT</th><th>TURNOS</th><th>AÇÃO</th></tr></thead><tbody id="table-linhas-body"></tbody></table>
+            </div>
         </div>
-        <table class="table-std"><thead><tr><th>Linha</th><th>Takt</th><th>Turnos</th><th>Ações</th></tr></thead><tbody id="lines-body"></tbody></table>
-    </div>
-
-    <div id="view-config" class="view-container">
-        <div style="background:white;padding:15px;margin-bottom:10px;border-radius:8px;border:1px solid #ddd;">
-            <input type="number" id="inp-id" placeholder="Nº Carro">
-            <select id="inp-desc"><option value="CABBACKHOE">Cab Backhoe</option><option value="CABBLOADER">Cab Loader</option></select>
-            <input type="number" id="inp-ordens" placeholder="Ordens/Carrinho">
-            <input type="number" id="inp-fluxo" placeholder="Qtd Carrinhos">
-            <button onclick="saveCar()">SALVAR</button>
-        </div>
-        <table class="table-std"><thead><tr><th>Carro</th><th>Linha</th><th>Ordens</th><th>Fluxo</th><th>Ações</th></tr></thead><tbody id="cars-body"></tbody></table>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getDatabase, ref, onValue, update, set, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+        import { getDatabase, ref, onValue, update, set, remove, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
         const firebaseConfig = { databaseURL: "https://carros-backhoe-default-rtdb.firebaseio.com" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        
         const refCars = ref(db, "cabine_v12_final");
         const refLines = ref(db, "linhas_v12_config");
+        const refHist = ref(db, "historico_v12_movimentacoes");
+        const refProgramacao = ref(db, "programacao_ordens_v12");
 
         let CARROS = {};
         let LINHAS = {};
+        let DATA_HISTORICO = [];
+        let PROGRAMACAO_ORDENS = [];
+        let termoBuscaProgramacao = "";
 
-        const MAP_STATIONS = [
-            {id:"LC3010", x:320, y:20, w:150, h:70, c:"st-y"}, {id:"LC3010B", x:470, y:20, w:140, h:70, c:"st-y"},
-            {id:"LC3020", x:320, y:90, w:150, h:80, c:"st-y"}, {id:"LC3030", x:320, y:170, w:150, h:80, c:"st-y"},
-            {id:"LC3040", x:320, y:250, w:150, h:80, c:"st-y"}, {id:"LC30-Quality", x:320, y:330, w:150, h:80, c:"st-y"},
-            {id:"Qualidade Backhoe", x:320, y:410, w:300, h:80, c:"st-g"}, {id:"Qualidade Loader", x:320, y:490, w:300, h:80, c:"st-g"},
-            {id:"LC10-Quality", x:320, y:570, w:150, h:80, c:"st-g"}, {id:"LC1040", x:320, y:650, w:150, h:80, c:"st-g"},
-            {id:"LC1030", x:320, y:730, w:150, h:80, c:"st-g"}, {id:"LC1020", x:320, y:810, w:150, h:80, c:"st-g"},
-            {id:"LC1010", x:320, y:890, w:150, h:70, c:"st-g"}, {id:"LC1010B", x:470, y:890, w:140, h:70, c:"st-g"}
-        ];
+        function getCarWH(car) {
+            if (!car) return 'WH2';
+            if (car.wh) return car.wh;
+            return (car.id == 266 || car.id == 267) ? 'WH1' : 'WH2';
+        }
 
-        const CAR_POSS = {
-            "260":[620,20], "253":[220,100], "264":[480,120], "258":[220,190],
-            "267":[480,270], "255":[220,280], "256":[220,430], "367":[630,420], 
-            "261":[220,530], "262":[220,620], "388":[480,680], "266":[480,770], "259":[220,880]
-        };
+        // FUNÇÕES DE NORMALIZAÇÃO, ORDENAÇÃO E ESCAPES
+        function normalizarNomeColuna(nome) {
+            if (!nome) return "";
+            return String(nome)
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, " ")
+                .replace(/\s+/g, " ")
+                .trim();
+        }
 
+        function identificarColuna(colunas, tipo) {
+            for (const col of colunas) {
+                const n = normalizarNomeColuna(col);
+                if (tipo === 'carro') {
+                    if (n === 'numero do carro' || n === 'num carro' || n === 'no carro' || n === 'n carro' || n === 'carro' || n.includes('carro')) return col;
+                } else if (tipo === 'sequencial') {
+                    if (n === 'n sequencial' || n === 'no sequencial' || n === 'numero sequencial' || n === 'num sequencial' || n === 'sequencial' || n.includes('sequencial')) return col;
+                } else if (tipo === 'ordem') {
+                    if (n === 'ordem' || n === 'ordem de producao' || n === 'ordem producao' || n === 'op' || n.includes('ordem')) return col;
+                } else if (tipo === 'lista') {
+                    if (n === 'lista' || n === 'lista de separacao' || n === 'lista separacao' || n.includes('lista')) return col;
+                }
+            }
+            return null;
+        }
+
+        function normalizarNumeroCarro(valor) {
+            if (valor === undefined || valor === null) return "";
+            let s = String(valor).trim().replace(/^#/, '').trim();
+            const match = s.match(/^(\d+)/);
+            if (match) return match[1];
+            return s.replace(/\s+/g, "");
+        }
+
+        function extrairNumeroSequencial(val) {
+            if (val === undefined || val === null) return Infinity;
+            const str = String(val).trim();
+            if (str === "") return Infinity;
+            const match = str.match(/-?\d+(\.\d+)?/);
+            if (match) {
+                const num = parseFloat(match[0]);
+                return isNaN(num) ? Infinity : num;
+            }
+            return Infinity;
+        }
+
+        function compararSequencialAsc(a, b) {
+            const numA = extrairNumeroSequencial(a.sequencial);
+            const numB = extrairNumeroSequencial(b.sequencial);
+            if (numA !== numB) {
+                return numA - numB;
+            }
+            return String(a.sequencial || "").localeCompare(String(b.sequencial || ""), undefined, { numeric: true });
+        }
+
+        function escaparHTML(valor) {
+            if (valor === undefined || valor === null) return "-";
+            const str = String(valor).trim();
+            if (str === "") return "-";
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Distribuição inteligente e sequencial das ordens ao longo do ciclo operacional do carro
+        // Ordem do ciclo: CT (pronto entrega) -> WHC (cheio galpão) -> WHV (em picking) -> VT (vazio tenda)
+        function mapearProgramacaoPorCarro() {
+            const mapa = {};
+            const prioridadeStatus = { 'CT': 1, 'WHC': 2, 'WHV': 3, 'VT': 4, 'L': 5 };
+
+            Object.values(CARROS).forEach(car => {
+                const normId = normalizarNumeroCarro(car.id);
+                const progsCarro = PROGRAMACAO_ORDENS
+                    .filter(p => normalizarNumeroCarro(p.numeroCarro) === normId)
+                    .sort(compararSequencialAsc);
+
+                if (progsCarro.length === 0) return;
+
+                // Ordena os slots do carro pelo estágio mais adiantado no fluxo
+                const slotsAtivos = [];
+                for (let i = 0; i < car.fluxo; i++) {
+                    const st = car.status[i] || 'WHV';
+                    slotsAtivos.push({
+                        idx: i,
+                        status: st,
+                        prio: prioridadeStatus[st] || 99
+                    });
+                }
+
+                // Slots mais adiantados recebem as primeiras ordens
+                slotsAtivos.sort((a, b) => a.prio - b.prio || a.idx - b.idx);
+
+                slotsAtivos.forEach((slot, ordemIdx) => {
+                    const chave = `${normId}_${slot.idx}`;
+                    if (progsCarro[ordemIdx]) {
+                        mapa[chave] = progsCarro[ordemIdx];
+                    }
+                });
+            });
+
+            return mapa;
+        }
+
+        function obterProgramacaoUnicaDoCarro(numeroCarro, cartIdx) {
+            const norm = normalizarNumeroCarro(numeroCarro);
+            if (!norm) return null;
+            const mapa = mapearProgramacaoPorCarro();
+            const chave = `${norm}_${cartIdx !== undefined && cartIdx !== null ? cartIdx : 0}`;
+            if (mapa[chave]) return mapa[chave];
+
+            // Fallback: primeira ordem disponível
+            const progs = PROGRAMACAO_ORDENS
+                .filter(p => normalizarNumeroCarro(p.numeroCarro) === norm)
+                .sort(compararSequencialAsc);
+            return progs[0] || null;
+        }
+
+        // NAVEGAÇÃO
         window.showView = (v) => {
+            if (v === 'config-linhas' || v === 'config-carros' || v === 'reset-manual') {
+                const senha = prompt("Digite a senha de acesso:");
+                if (senha !== 'JohnDeere2025') {
+                    alert("Acesso negado.");
+                    return;
+                }
+            }
             document.getElementById('view-home').style.display = (v === 'home' ? 'flex' : 'none');
             document.querySelectorAll('.view-container').forEach(c => c.style.display = 'none');
-            if(v !== 'home') document.getElementById('view-' + v).style.display = 'block';
+            const target = document.getElementById('view-' + v);
+            if(target) target.style.display = 'block';
         };
 
-        window.mudarStatus = (id, idx, st) => { 
-            const updates = {};
-            updates[`/status/${idx}`] = st;
-            if(st === 'C' || st === 'CT') updates[`/pickingState/${idx}`] = 0;
-            update(ref(db, `cabine_v12_final/${id}`), updates);
+        window.mudarStatus = (id, idx, st) => {
+            const car = CARROS[id];
+            const prog = obterProgramacaoUnicaDoCarro(id, idx);
+            const agora = new Date();
+            update(ref(db, `cabine_v12_final/${id}`), { [`status/${idx}`]: st, [`pickingActive/${idx}`]: false });
+            const novoItemHist = push(refHist);
+            set(novoItemHist, {
+                carro: `#${id} - C${idx+1}`,
+                warehouse: car ? getCarWH(car) : 'WH2',
+                linha: car ? car.desc : 'S/L',
+                status: st,
+                sequencial: prog ? prog.sequencial : '-',
+                ordem: prog ? prog.ordem : '-',
+                lista: prog ? prog.lista : '-',
+                dataHora: `${agora.toLocaleDateString('pt-BR')} ${agora.toLocaleTimeString('pt-BR')}`,
+                timestamp: agora.getTime()
+            });
         };
 
-        window.mudarPickingState = (id, idx, s) => { update(ref(db, `cabine_v12_final/${id}/pickingState`), { [idx]: s }); };
+        // Função de conclusão imediata de entrega na linha (sem confirmação modal) com remoção automática da programação
+        window.concluirLinhaEremoverProgramacao = (id, idx) => {
+            const car = CARROS[id];
+            const prog = obterProgramacaoUnicaDoCarro(id, idx);
 
-        window.saveLine = () => {
-            const name = document.getElementById('line-name').value;
-            set(ref(db, `linhas_v12_config/${name}`), { name, takt: parseInt(document.getElementById('line-takt').value), shifts: parseInt(document.getElementById('line-shifts').value) });
+            // 1. Atualiza status para 'L'
+            update(ref(db, `cabine_v12_final/${id}`), { [`status/${idx}`]: 'L', [`pickingActive/${idx}`]: false });
+
+            // 2. Remove automaticamente o item da programação de ordens no Firebase
+            if (prog && prog.firebaseKey) {
+                remove(ref(db, `programacao_ordens_v12/${prog.firebaseKey}`)).catch(err => {
+                    console.error("Erro ao remover da programação:", err);
+                });
+            }
+
+            // 3. Registra no histórico geral com Sequencial, Ordem e Lista
+            const agora = new Date();
+            const novoItemHist = push(refHist);
+            set(novoItemHist, {
+                carro: `#${id} - C${idx+1}`,
+                warehouse: car ? getCarWH(car) : 'WH2',
+                linha: car ? car.desc : 'S/L',
+                status: 'L',
+                sequencial: prog ? prog.sequencial : '-',
+                ordem: prog ? prog.ordem : '-',
+                lista: prog ? prog.lista : '-',
+                dataHora: `${agora.toLocaleDateString('pt-BR')} ${agora.toLocaleTimeString('pt-BR')}`,
+                timestamp: agora.getTime()
+            });
         };
+
+        window.exportToExcel = () => {
+            const ws = XLSX.utils.json_to_sheet(DATA_HISTORICO.map(h => {
+                let wh = 'WH2';
+                if (h.warehouse) {
+                    wh = h.warehouse;
+                } else if (h.carro) {
+                    const match = h.carro.match(/#(\d+)/);
+                    const carId = match ? match[1] : null;
+                    if (carId && CARROS[carId]) {
+                        wh = getCarWH(CARROS[carId]);
+                    } else {
+                        wh = (h.carro.includes('266') || h.carro.includes('267')) ? 'WH1' : 'WH2';
+                    }
+                }
+                return { 
+                    "DATA E HORA": h.dataHora, 
+                    "CARRO": h.carro, 
+                    "WAREHOUSE": wh,
+                    "LINHA": h.linha, 
+                    "STATUS": h.status,
+                    "SEQUENCIAL": h.sequencial || '-',
+                    "ORDEM": h.ordem || '-',
+                    "LISTA": h.lista || '-'
+                };
+            }));
+            const wb = XLSX.utils.book_new(); 
+            XLSX.utils.book_append_sheet(wb, ws, "Histórico");
+            XLSX.writeFile(wb, "Historico_Gestao_Cabine.xlsx");
+        };
+
+        // FIREBASE LISTENERS
+        onValue(refHist, snap => {
+            const data = snap.val() || {};
+            DATA_HISTORICO = Object.values(data).sort((a,b) => b.timestamp - a.timestamp);
+            document.getElementById('historico-body').innerHTML = DATA_HISTORICO.map(h => {
+                let wh = 'WH2';
+                if (h.warehouse) {
+                    wh = h.warehouse;
+                } else if (h.carro) {
+                    const match = h.carro.match(/#(\d+)/);
+                    const carId = match ? match[1] : null;
+                    if (carId && CARROS[carId]) {
+                        wh = getCarWH(CARROS[carId]);
+                    } else {
+                        wh = (h.carro.includes('266') || h.carro.includes('267')) ? 'WH1' : 'WH2';
+                    }
+                }
+                return `<tr>
+                    <td>${h.dataHora}</td>
+                    <td><b style="color:var(--primary);">${h.carro}</b></td>
+                    <td>${wh}</td>
+                    <td>${h.linha}</td>
+                    <td><span class="sup-badge" style="background:var(--${h.status && h.status.toLowerCase()==='l'?'linha-l':(h.status ? h.status.toLowerCase() : 'ct')})">${h.status}</span></td>
+                    <td><b>${escaparHTML(h.sequencial)}</b></td>
+                    <td><span style="font-family: monospace; color: #0284c7; font-weight: 700;">${escaparHTML(h.ordem)}</span></td>
+                    <td><span style="background:var(--bg-card-hover); padding: 3px 8px; border-radius: 4px; font-size: 12px; border: 1px solid var(--border-color); font-weight: 600;">${escaparHTML(h.lista)}</span></td>
+                </tr>`
+            }).join('');
+        });
+
+        onValue(refProgramacao, snap => {
+            const data = snap.val() || {};
+            PROGRAMACAO_ORDENS = Object.entries(data).map(([key, val]) => ({
+                firebaseKey: key,
+                numeroCarro: val.numeroCarro !== undefined ? String(val.numeroCarro).trim() : "",
+                sequencial: val.sequencial !== undefined ? String(val.sequencial).trim() : "",
+                ordem: val.ordem !== undefined ? String(val.ordem).trim() : "",
+                lista: val.lista !== undefined ? String(val.lista).trim() : "",
+                dataHoraImportacao: val.dataHoraImportacao || "-",
+                timestamp: val.timestamp || 0
+            })).sort(compararSequencialAsc);
+
+            renderProgramacaoOrdens();
+            renderPicking();
+            renderRotaInterna();
+            renderRotaExterna();
+        });
+
+        window.toggleAndamento = (id, idx, currentVal, status) => { 
+            if(status === 'WHV' || status === 'VT') {
+                update(ref(db, `cabine_v12_final/${id}/pickingActive`), { [idx]: !currentVal });
+            }
+        };
+        
+        window.saveLine = () => { 
+            const n = document.getElementById('line-name-inp').value; 
+            const t = parseInt(document.getElementById('line-takt-inp').value) || 1;
+            const s = parseInt(document.getElementById('line-shifts-inp').value) || 1;
+            if(n) set(ref(db, `linhas_v12_config/${n}`), { name: n, takt: t, shifts: s }); 
+        };
+
         window.saveCar = () => {
-            const id = document.getElementById('inp-id').value;
-            const f = parseInt(document.getElementById('inp-fluxo').value);
-            const car = { id: parseInt(id), desc: document.getElementById('inp-desc').value, ordens: parseInt(document.getElementById('inp-ordens').value), fluxo: f };
-            if(!CARROS[id] || CARROS[id].fluxo !== f) { car.status = Array(f).fill("C"); car.pickingState = Array(f).fill(0); }
-            update(ref(db, `cabine_v12_final/${id}`), car);
+            const id = document.getElementById('car-id-inp').value;
+            const wh = document.getElementById('car-wh-sel').value || 'WH1';
+            const f = parseInt(document.getElementById('car-fluxo-inp').value) || 2;
+            const o = parseInt(document.getElementById('car-ordens-inp').value) || 1;
+            if(id) update(ref(db, `cabine_v12_final/${id}`), { id: parseInt(id), wh: wh, desc: document.getElementById('car-line-sel').value, ordens: o, fluxo: f, status: Array(f).fill("WHV"), pickingActive: Array(f).fill(false) });
         };
-        window.deleteData = (p) => { if(confirm("Excluir?")) remove(ref(db, p)); };
 
-        onValue(refLines, (snap) => {
+        window.delLine = (n) => remove(ref(db, `linhas_v12_config/${n}`));
+        window.delCar = (id) => remove(ref(db, `cabine_v12_final/${id}`));
+
+        onValue(refLines, snap => {
             LINHAS = snap.val() || {};
-            document.getElementById('lines-body').innerHTML = Object.values(LINHAS).map(l => `<tr><td>${l.name}</td><td>${l.takt}m</td><td>${l.shifts}</td><td><button onclick="deleteData('linhas_v12_config/${l.name}')">✖</button></td></tr>`).join('');
+            document.getElementById('car-line-sel').innerHTML = Object.values(LINHAS).map(l => `<option value="${l.name}">${l.name}</option>`).join('');
+            document.getElementById('table-linhas-body').innerHTML = Object.values(LINHAS).map(l => `<tr><td>${l.name}</td><td>${l.takt}m</td><td>${l.shifts}</td><td><button class="btn-danger" style="padding:4px 10px;" onclick="delLine('${l.name}')">✖</button></td></tr>`).join('');
         });
 
-        onValue(refCars, (snap) => {
+        onValue(refCars, snap => {
             CARROS = snap.val() || {};
-            const lista = Object.values(CARROS).sort((a,b) => a.id - b.id);
-            renderLinha(lista);
-            renderPicking(lista);
-            renderMapa(lista);
-            document.getElementById('cars-body').innerHTML = lista.map(c => `<tr><td>#${c.id}</td><td>${c.desc}</td><td>${c.ordens}</td><td>${c.fluxo}</td><td><button onclick="deleteData('cabine_v12_final/${c.id}')">✖</button></td></tr>`).join('');
+            renderMapa(); renderSupervisorio(); renderPicking(); renderRotaExterna(); renderRotaInterna(); renderResetManual();
+            document.getElementById('table-carros-body').innerHTML = Object.values(CARROS).sort((a,b)=>a.id-b.id).map(c => {
+                const wh = getCarWH(c);
+                return `<tr><td><b style="color:var(--primary);">#${c.id}</b></td><td>${wh}</td><td>${c.desc}</td><td>${c.ordens}</td><td>${c.fluxo}</td><td><button class="btn-danger" style="padding:4px 10px;" onclick="delCar(${c.id})">✖</button></td></tr>`
+            }).join('');
         });
 
-        function renderLinha(lista) {
-            document.getElementById('container-linha').innerHTML = lista.map(car => {
-                const isReady = car.pickingState && Object.values(car.pickingState).includes(2);
-                let carts = car.status.map((st, i) => {
-                    const css = st==='V'?'st-v':st==='VT'?'st-vt':st==='CT'?'st-ct':'st-c';
-                    return `<div class="mini-cart ${css}"><span>${i+1}</span><div class="btn-group-vc">
-                        <button class="btn-vc ${st==='V'?'active-btn':''}" onclick="mudarStatus(${car.id},${i},'V')">V</button>
-                        <button class="btn-vc ${st==='C'?'active-btn':''}" onclick="mudarStatus(${car.id},${i},'C')">C</button>
-                        <button class="btn-vc ${st==='VT'?'active-btn':''}" onclick="mudarStatus(${car.id},${i},'VT')">VT</button>
-                        <button class="btn-vc ${st==='CT'?'active-btn':''}" onclick="mudarStatus(${car.id},${i},'CT')">CT</button>
-                    </div></div>`;
-                }).join('');
-                return `<div class="car-card ${isReady?'blink-ready':''}"><span class="car-id">#${car.id}</span><span class="car-desc">${car.desc}</span><br><div class="ordens-pill">ORDENS: ${car.ordens}</div><div class="carrinhos-grid">${carts}</div></div>`;
+        // IMPORTAÇÃO E GESTÃO DE PROGRAMAÇÃO
+        window.importarProgramacaoExcel = () => {
+            const fileInput = document.getElementById('excel-file-inp');
+            const file = fileInput.files ? fileInput.files[0] : null;
+
+            if (!file) {
+                alert("Por favor, selecione um arquivo Excel (.xlsx ou .xls) para importar.");
+                return;
+            }
+
+            if (typeof XLSX === 'undefined') {
+                alert("Erro: Biblioteca SheetJS XLSX não foi carregada.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+
+                    if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+                        alert("O arquivo Excel selecionado não contém planilhas.");
+                        return;
+                    }
+
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                    if (!jsonData || jsonData.length === 0) {
+                        alert("A primeira planilha do arquivo está vazia.");
+                        return;
+                    }
+
+                    const colunasOriginais = Object.keys(jsonData[0]);
+                    const colCarro = identificarColuna(colunasOriginais, 'carro');
+                    const colSeq = identificarColuna(colunasOriginais, 'sequencial');
+                    const colOrdem = identificarColuna(colunasOriginais, 'ordem');
+                    const colLista = identificarColuna(colunasOriginais, 'lista');
+
+                    const faltantes = [];
+                    if (!colCarro) faltantes.push("NUMERO DO CARRO");
+                    if (!colSeq) faltantes.push("N° SEQUENCIAL");
+                    if (!colOrdem) faltantes.push("ORDEM");
+                    if (!colLista) faltantes.push("LISTA");
+
+                    if (faltantes.length > 0) {
+                        alert("Erro de Colunas Obrigatórias!\n\nAs seguintes colunas não foram identificadas:\n- " + faltantes.join("\n- ") + 
+                              "\n\nColunas encontradas no arquivo:\n" + colunasOriginais.join(", "));
+                        return;
+                    }
+
+                    const registrosValidos = [];
+                    const agora = new Date();
+                    const dataHoraStr = `${agora.toLocaleDateString('pt-BR')} ${agora.toLocaleTimeString('pt-BR')}`;
+                    const timestampNow = agora.getTime();
+
+                    jsonData.forEach((row, idx) => {
+                        const carroBruto = row[colCarro];
+                        const seqBruto = row[colSeq];
+                        const ordemBruta = row[colOrdem];
+                        const listaBruta = row[colLista];
+
+                        const isEmpty = (!carroBruto && !seqBruto && !ordemBruta && !listaBruta);
+                        if (isEmpty) return;
+
+                        const carroNorm = normalizarNumeroCarro(carroBruto);
+                        if (!carroNorm) return;
+
+                        registrosValidos.push({
+                            numeroCarro: carroNorm,
+                            sequencial: String(seqBruto || "").trim(),
+                            ordem: String(ordemBruta || "").trim(),
+                            lista: String(listaBruta || "").trim(),
+                            dataHoraImportacao: dataHoraStr,
+                            timestamp: timestampNow + idx
+                        });
+                    });
+
+                    if (registrosValidos.length === 0) {
+                        alert("Nenhum registro com número de carro válido foi encontrado.");
+                        return;
+                    }
+
+                    if (PROGRAMACAO_ORDENS.length > 0) {
+                        const confirmar = confirm(`Já existem ${PROGRAMACAO_ORDENS.length} registros cadastrados na programação.\n\nDeseja SUBSTITUIR toda a programação atual pelos ${registrosValidos.length} novos registros?`);
+                        if (!confirmar) return;
+                    }
+
+                    salvarProgramacaoFirebase(registrosValidos);
+                    fileInput.value = "";
+
+                } catch (err) {
+                    console.error("Erro ao processar Excel:", err);
+                    alert("Erro ao ler o arquivo Excel: " + err.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        };
+
+        function salvarProgramacaoFirebase(registros) {
+            const novoObjeto = {};
+            registros.forEach(reg => {
+                const newKey = push(refProgramacao).key;
+                novoObjeto[newKey] = reg;
+            });
+
+            set(refProgramacao, novoObjeto)
+                .then(() => {
+                    alert(`Sucesso! ${registros.length} registros de programação foram importados e salvos no Firebase.`);
+                })
+                .catch(err => {
+                    console.error("Erro ao salvar no Firebase:", err);
+                    alert("Erro ao salvar no Firebase: " + err.message);
+                });
+        }
+
+        window.excluirProgramacao = (key) => {
+            if (!key) return;
+            if (confirm("Deseja realmente excluir este registro de programação?")) {
+                remove(ref(db, `programacao_ordens_v12/${key}`))
+                    .catch(err => alert("Erro ao excluir: " + err.message));
+            }
+        };
+
+        window.limparProgramacao = () => {
+            if (PROGRAMACAO_ORDENS.length === 0) {
+                alert("A programação já está vazia.");
+                return;
+            }
+            if (confirm("ATENÇÃO: Deseja realmente excluir TODA a programação de ordens cadastrada?")) {
+                set(refProgramacao, null)
+                    .then(() => alert("Programação de ordens limpa com sucesso."))
+                    .catch(err => alert("Erro ao limpar programação: " + err.message));
+            }
+        };
+
+        window.filtrarProgramacao = () => {
+            const input = document.getElementById("busca-programacao");
+            termoBuscaProgramacao = (input ? input.value : "").toLowerCase().trim();
+            renderProgramacaoOrdens();
+        };
+
+        function renderProgramacaoOrdens() {
+            const tbody = document.getElementById("programacao-table-body");
+            const totalEl = document.getElementById("total-registros-prog");
+            if (totalEl) totalEl.textContent = PROGRAMACAO_ORDENS.length;
+            if (!tbody) return;
+
+            let lista = PROGRAMACAO_ORDENS;
+            if (termoBuscaProgramacao) {
+                lista = lista.filter(p => 
+                    p.numeroCarro.toLowerCase().includes(termoBuscaProgramacao) ||
+                    p.sequencial.toLowerCase().includes(termoBuscaProgramacao) ||
+                    p.ordem.toLowerCase().includes(termoBuscaProgramacao) ||
+                    p.lista.toLowerCase().includes(termoBuscaProgramacao)
+                );
+            }
+
+            if (lista.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 25px;">${PROGRAMACAO_ORDENS.length === 0 ? 'Nenhuma programação importada. Selecione um arquivo Excel acima.' : 'Nenhum registro encontrado para o termo pesquisado.'}</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = lista.map(p => `
+                <tr>
+                    <td><b style="color:var(--primary);">#${escaparHTML(p.numeroCarro)}</b></td>
+                    <td><b>${escaparHTML(p.sequencial)}</b></td>
+                    <td><span style="font-family: monospace; color: #0284c7; font-weight: 700;">${escaparHTML(p.ordem)}</span></td>
+                    <td><span style="background:var(--bg-card-hover); padding: 3px 8px; border-radius: 4px; font-size: 12px; border: 1px solid var(--border-color); font-weight: 600;">${escaparHTML(p.lista)}</span></td>
+                    <td style="color: var(--text-muted); font-size: 12px;">${escaparHTML(p.dataHoraImportacao)}</td>
+                    <td>
+                        <button class="btn-danger" onclick="excluirProgramacao('${p.firebaseKey}')">🗑️ Excluir</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // RENDERS DE TELAS
+        function renderResetManual() {
+            const grid = document.getElementById("reset-manual-grid");
+            const opts = ["WHV", "WHC", "VT", "CT", "L"]; 
+            
+            grid.innerHTML = Object.values(CARROS).sort((a,b)=>a.id-b.id).map(car => {
+                let rowsHtml = "";
+                for(let i=0; i < car.fluxo; i++) {
+                    const st = car.status[i];
+                    rowsHtml += `
+                        <div class="reset-item-row">
+                            <div class="status-indicator-bar bar-${st}"></div>
+                            <div class="reset-item-label">C${i+1}</div>
+                            <div class="reset-btn-group">
+                                ${opts.map(o => `
+                                    <button class="btn-opt ${st === o ? 'active-'+o : ''}" 
+                                        onclick="mudarStatus(${car.id}, ${i}, '${o}')">
+                                        ${o}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                return `<div class="reset-card"><div class="reset-card-header">#${car.id} <small>${car.desc}</small></div>${rowsHtml}</div>`;
             }).join('');
         }
 
-        function renderPicking(lista) {
-            let fila = [];
-            lista.forEach(car => {
-                const takt = LINHAS[car.desc]?.takt || 0;
-                const cheios = car.status.filter(s => s==='C'||s==='CT').length;
-                const autonomia = (cheios * car.ordens) * takt;
-                car.status.forEach((st, idx) => {
-                    if(st==='V'||st==='VT') fila.push({...car, idx, st, autonomia, pState: car.pickingState?.[idx]||0});
-                });
+        function renderMapa() {
+            const root = document.getElementById("map-root");
+            const STATIONS = [{id:"LC3010", x:320, y:20, w:150, h:70}, {id:"LC3010B", x:470, y:20, w:140, h:70}, {id:"LC3020", x:320, y:90, w:150, h:80}, {id:"LC3030", x:320, y:170, w:150, h:80}, {id:"LC3040", x:320, y:250, w:150, h:80}, {id:"LC30-Quality", x:320, y:330, w:150, h:80}, {id:"Qualidade Backhoe", x:320, y:410, w:300, h:80, c:"st-gray"}, {id:"Qualidade Loader", x:320, y:490, w:300, h:80, c:"st-gray"}, {id:"LC10-Quality", x:320, y:570, w:150, h:80, c:"st-gray"}, {id:"LC1040", x:320, y:650, w:150, h:80, c:"st-gray"}, {id:"LC1030", x:320, y:730, w:150, h:80, c:"st-gray"}, {id:"LC1020", x:320, y:810, w:150, h:80, c:"st-gray"}, {id:"LC1010", x:320, y:890, w:150, h:70, c:"st-gray"}, {id:"LC1010B", x:470, y:890, w:140, h:70, c:"st-gray"}];
+            const SLOT_COORDS = [[640,20], [210,100], [480,115], [210,195], [530,270], [210,285], [210,430], [650,420], [210,530], [210,625], [490,685], [490,775], [210,890]];
+            const carList = Object.values(CARROS).sort((a,b) => a.id - b.id);
+
+            root.innerHTML = STATIONS.map(s => `<div class="map-station-box ${s.c||''}" style="left:${s.x}px; top:${s.y}px; width:${s.w}px; height:${s.h}px;">${s.id}</div>`).join('');
+            
+            carList.forEach((car, index) => {
+                if (index >= SLOT_COORDS.length) return;
+                const pos = SLOT_COORDS[index];
+                const totalL = car.status.filter(s => s === 'L').length;
+                const showC1 = totalL >= 1;
+                const showC2 = totalL >= 2;
+                let alertClass = "";
+                if (totalL === 0) alertClass = "alert-blink";
+                else if (totalL === 1) alertClass = "warning-blink";
+                
+                root.insertAdjacentHTML('beforeend', `<div class="car-marker-box ${alertClass}" style="left:${pos[0]}px; top:${pos[1]}px;"><div class="marker-header">#${car.id}</div><div class="marker-row"><span>C1</span><div class="status-circle ${showC1?'bg-c':'bg-v'}">${showC1?'C':'V'}</div></div><div class="marker-row"><span>C2</span><div class="status-circle ${showC2?'bg-c':'bg-v'}">${showC2?'C':'V'}</div></div></div>`);
             });
-            document.getElementById('list-picking').innerHTML = fila.sort((a,b)=>a.autonomia - b.autonomia).map((it, i) => `
-                <tr><td>${i+1}º</td><td>#${it.id}</td><td>C${it.idx+1}</td>
-                <td><span class="status-badge" style="background:${it.pState===1?'#f1c40f':it.pState===2?'#3498db':'#95a5a6'}">${it.pState===1?'PROCESSO':it.pState===2?'FINALIZADO':'AGUARDANDO'}</span></td>
-                <td><b>${Math.floor(it.autonomia/60)}h ${it.autonomia%60}m</b></td>
-                <td>
-                    <button class="btn-pick btn-proc" onclick="mudarPickingState(${it.id},${it.idx},1)">PROCESSO</button>
-                    <button class="btn-pick btn-fin" onclick="mudarPickingState(${it.id},${it.idx},2)">FINALIZAR</button>
-                    <button class="btn-pick btn-ok" onclick="mudarStatus(${it.id},${it.idx},'CT')">OK</button>
-                </td></tr>`).join('');
         }
 
-        function renderMapa(lista) {
-            const root = document.getElementById("map-root");
-            root.innerHTML = MAP_STATIONS.map(s => `<div class="map-station ${s.c}" style="left:${s.x}px; top:${s.y}px; width:${s.w}px; height:${s.h}px;">${s.id}</div>`).join('');
-            lista.forEach(car => {
-                const pos = CAR_POSS[car.id]; if(!pos) return;
-                let indices = [];
-                car.status.forEach((st, idx) => { if(st==='C'||st==='CT') indices.push(idx); });
-                if(indices.length < 2) car.status.forEach((st, idx) => { if(!indices.includes(idx)) indices.push(idx); });
-                const finalIdx = indices.sort((a,b)=>a-b).slice(0,2);
-                
-                const div = document.createElement('div');
-                div.className = 'car-marker'; div.style.left = pos[0]+"px"; div.style.top = pos[1]+"px";
-                div.innerHTML = `<b>#${car.id}</b>` + finalIdx.map(idx => `
-                    <div class="m-row"><span>C${idx+1}</span><div>
-                        <button class="m-btn ${car.status[idx]==='V'?'m-active-v':''}" onclick="mudarStatus(${car.id},${idx},'V')">V</button>
-                        <button class="m-btn ${car.status[idx].includes('C')?'m-active-c':''}" onclick="mudarStatus(${car.id},${idx},'C')">C</button>
-                    </div></div>`).join('');
-                root.appendChild(div);
+        function renderSupervisorio() {
+            const vtDiv = document.getElementById("sup-tenda-vt-content");
+            const ctDiv = document.getElementById("sup-tenda-ct-content");
+            const whvDiv = document.getElementById("sup-wh-whv-content");
+            const whcDiv = document.getElementById("sup-wh-whc-content");
+
+            let cVT = 0, cWHV = 0;
+            let hVT = "", hCT = "", hWHV = "", hWHC = "";
+
+            Object.values(CARROS).forEach(car => car.status.forEach((st, idx) => {
+                if (st === 'VT') {
+                    cVT++;
+                    hVT += `<div class="sup-card" style="border-left-color:var(--vt)"><span>#${car.id}-C${idx+1} <br><small>${car.desc}</small></span><span class="sup-badge" style="background:var(--vt)">VT</span></div>`;
+                } else if (st === 'CT') {
+                    hCT += `<div class="sup-card" style="border-left-color:var(--ct)"><span>#${car.id}-C${idx+1} <br><small>${car.desc}</small></span><span class="sup-badge" style="background:var(--ct)">CT</span></div>`;
+                } else if (st === 'WHV') {
+                    cWHV++;
+                    hWHV += `<div class="sup-card" style="border-left-color:var(--whv)"><span>#${car.id}-C${idx+1} <br><small>${car.desc}</small></span><span class="sup-badge" style="background:var(--whv)">WHV</span></div>`;
+                } else if (st === 'WHC') {
+                    hWHC += `<div class="sup-card" style="border-left-color:var(--whc)"><span>#${car.id}-C${idx+1} <br><small>${car.desc}</small></span><span class="sup-badge" style="background:var(--whc)">WHC</span></div>`;
+                }
+            }));
+
+            if (vtDiv) vtDiv.innerHTML = hVT || `<div style="text-align:center; color:var(--text-muted); padding:10px; font-size:12px;">Nenhum</div>`;
+            if (ctDiv) ctDiv.innerHTML = hCT || `<div style="text-align:center; color:var(--text-muted); padding:10px; font-size:12px;">Nenhum</div>`;
+            if (whvDiv) whvDiv.innerHTML = hWHV || `<div style="text-align:center; color:var(--text-muted); padding:10px; font-size:12px;">Nenhum</div>`;
+            if (whcDiv) whcDiv.innerHTML = hWHC || `<div style="text-align:center; color:var(--text-muted); padding:10px; font-size:12px;">Nenhum</div>`;
+
+            const colTenda = document.getElementById("col-tenda");
+            const colWh = document.getElementById("col-wh");
+            if (colTenda) colTenda.classList.toggle("alert-blink", cVT >= 2);
+            if (colWh) colWh.classList.toggle("alert-blink", cWHV >= 2);
+        }
+
+        function renderPicking() {
+            const tableAndamento = document.getElementById("picking-andamento-body");
+            const tableAguardando = document.getElementById("picking-aguardando-body");
+            const countAndamento = document.getElementById("count-picking-andamento");
+            const countAguardando = document.getElementById("count-picking-aguardando");
+            if (!tableAndamento || !tableAguardando) return;
+
+            let tasksAndamento = [];
+            let tasksAguardando = [];
+
+            Object.values(CARROS).forEach(car => {
+                const config = LINHAS[car.desc] || { takt: 1, shifts: 1 };
+                const vaziosCount = car.status.filter(s => s === 'WHV' || s === 'VT').length;
+                const score = parseFloat((car.ordens * vaziosCount * (config.shifts / config.takt)).toFixed(2));
+                const wh = getCarWH(car);
+
+                car.status.forEach((st, idx) => { 
+                    // FILTRO: apenas carros no status WHV
+                    if (st === 'WHV') {
+                        const prog = obterProgramacaoUnicaDoCarro(car.id, idx);
+                        const item = { 
+                            id: car.id, 
+                            line: car.desc, 
+                            idx: idx, 
+                            status: st, 
+                            score: score,
+                            wh: wh,
+                            prog: prog,
+                            isActive: car.pickingActive?.[idx] || false 
+                        };
+
+                        if (item.isActive) {
+                            tasksAndamento.push(item);
+                        } else {
+                            tasksAguardando.push(item);
+                        }
+                    }
+                });
             });
+
+            // Ordenação AGUARDANDO PICKING:
+            // 1. Maior Score
+            // 2. Menor Sequencial
+            // 3. Menor ID do Carro
+            tasksAguardando.sort((a, b) => {
+                const scoreA = a.score || 0;
+                const scoreB = b.score || 0;
+                if (scoreB !== scoreA) {
+                    return scoreB - scoreA;
+                }
+                const seqA = a.prog ? extrairNumeroSequencial(a.prog.sequencial) : Infinity;
+                const seqB = b.prog ? extrairNumeroSequencial(b.prog.sequencial) : Infinity;
+                if (seqA !== seqB) {
+                    return seqA - seqB;
+                }
+                return (a.id - b.id) || (a.idx - b.idx);
+            });
+
+            // Atualiza contadores
+            if (countAndamento) countAndamento.textContent = tasksAndamento.length;
+            if (countAguardando) countAguardando.textContent = tasksAguardando.length;
+
+            // RENDER: EM ANDAMENTO
+            if (tasksAndamento.length === 0) {
+                tableAndamento.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding: 16px;">Nenhum picking em andamento no momento</td></tr>`;
+            } else {
+                tableAndamento.innerHTML = tasksAndamento.map(t => {
+                    const colSeq = t.prog ? escaparHTML(t.prog.sequencial) : "-";
+                    const colOrdem = t.prog ? `<span style="font-family: monospace; color: #0284c7; font-weight: 700;">${escaparHTML(t.prog.ordem)}</span>` : "-";
+                    const colLista = t.prog ? `<span style="background:var(--bg-card-hover); padding: 3px 8px; border-radius: 4px; font-size: 12px; border: 1px solid var(--border-color); font-weight: 600;">${escaparHTML(t.prog.lista)}</span>` : "-";
+
+                    return `<tr class="row-in-progress">
+                        <td><b style="color:var(--primary);">#${t.id}-C${t.idx+1}</b></td>
+                        <td>${t.wh}</td>
+                        <td>${t.line}</td>
+                        <td><b>${colSeq}</b></td>
+                        <td>${colOrdem}</td>
+                        <td>${colLista}</td>
+                        <td><span class="sup-badge" style="background:var(--${t.status.toLowerCase()})">${t.status}</span></td>
+                        <td>
+                            <button class="btn-picking" style="background:#f59e0b; color:#0f172a;" onclick="toggleAndamento(${t.id},${t.idx},true,'${t.status}')">
+                                ⏸ PARAR
+                            </button> 
+                            <button class="btn-picking btn-finalizar" onclick="mudarStatus(${t.id},${t.idx},'WHC')">
+                                ✔ FINALIZAR
+                            </button>
+                        </td>
+                    </tr>`;
+                }).join('');
+            }
+
+            // RENDER: AGUARDANDO PICKING
+            if (tasksAguardando.length === 0) {
+                tableAguardando.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding: 16px;">Nenhum carro aguardando picking</td></tr>`;
+            } else {
+                tableAguardando.innerHTML = tasksAguardando.map((t, i) => {
+                    const colSeq = t.prog ? escaparHTML(t.prog.sequencial) : "-";
+                    const colOrdem = t.prog ? `<span style="font-family: monospace; color: #0284c7; font-weight: 700;">${escaparHTML(t.prog.ordem)}</span>` : "-";
+                    const colLista = t.prog ? `<span style="background:var(--bg-card-hover); padding: 3px 8px; border-radius: 4px; font-size: 12px; border: 1px solid var(--border-color); font-weight: 600;">${escaparHTML(t.prog.lista)}</span>` : "-";
+
+                    return `<tr>
+                        <td><span class="badge-rank">${i+1}º</span></td>
+                        <td><b>#${t.id}-C${t.idx+1}</b></td>
+                        <td>${t.wh}</td>
+                        <td>${t.line}</td>
+                        <td><b>${colSeq}</b></td>
+                        <td>${colOrdem}</td>
+                        <td>${colLista}</td>
+                        <td><span class="sup-badge" style="background:var(--${t.status.toLowerCase()})">${t.status}</span></td>
+                        <td>
+                            <button class="btn-picking" style="background:#f59e0b; color:#0f172a;" onclick="toggleAndamento(${t.id},${t.idx},false,'${t.status}')">
+                                ▶ ANDAMENTO
+                            </button> 
+                            <button class="btn-picking btn-finalizar" disabled onclick="mudarStatus(${t.id},${t.idx},'WHC')">
+                                ✔ FINALIZAR
+                            </button>
+                        </td>
+                    </tr>`;
+                }).join('');
+            }
+        }
+
+        function renderRotaExterna() {
+            const tableVT = document.getElementById("table-rota-vt");
+            const tableWHC = document.getElementById("table-rota-whc");
+            if (!tableVT || !tableWHC) return;
+
+            let itemsVT = [];
+            let itemsWHC = [];
+
+            Object.values(CARROS).forEach(c => c.status.forEach((st, i) => {
+                const wh = getCarWH(c);
+                const prog = obterProgramacaoUnicaDoCarro(c.id, i);
+
+                if (st === 'VT') {
+                    // Vazios (VT -> WHV) sem necessidade de sequencial
+                    itemsVT.push({ id: c.id, idx: i, wh: wh });
+                } else if (st === 'WHC') {
+                    // Cheios (WHC -> CT) com dados de programação
+                    itemsWHC.push({ id: c.id, idx: i, wh: wh, prog: prog });
+                }
+            }));
+
+            // VT ordenado por ID do carro
+            itemsVT.sort((a, b) => a.id - b.id || a.idx - b.idx);
+
+            // WHC ordenado por menor sequencial
+            itemsWHC.sort((a, b) => {
+                const seqA = a.prog ? extrairNumeroSequencial(a.prog.sequencial) : Infinity;
+                const seqB = b.prog ? extrairNumeroSequencial(b.prog.sequencial) : Infinity;
+                return seqA - seqB;
+            });
+
+            // Recolha Vazios: apenas Carro, WH e Ação
+            tableVT.innerHTML = itemsVT.length > 0 ? itemsVT.map(item => {
+                return `<tr>
+                    <td><b style="color:var(--primary);">#${item.id}-C${item.idx+1}</b></td>
+                    <td>${item.wh}</td>
+                    <td><button class="btn-finalizar" style="background:var(--whv); color:#fff;" onclick="mudarStatus(${item.id},${item.idx},'WHV')">→ WHV</button></td>
+                </tr>`;
+            }).join('') : `<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">Nenhum carro na fila</td></tr>`;
+
+            // Entrega Cheios: Carro, WH, Sequencial, Ordem, Lista e Ação
+            tableWHC.innerHTML = itemsWHC.length > 0 ? itemsWHC.map(item => {
+                const colSeq = item.prog ? escaparHTML(item.prog.sequencial) : "-";
+                const colOrdem = item.prog ? `<span style="font-family: monospace; color: #0284c7; font-weight: 700;">${escaparHTML(item.prog.ordem)}</span>` : "-";
+                const colLista = item.prog ? `<span style="background:var(--bg-card-hover); padding: 3px 8px; border-radius: 4px; font-size: 12px; border: 1px solid var(--border-color); font-weight: 600;">${escaparHTML(item.prog.lista)}</span>` : "-";
+
+                return `<tr>
+                    <td><b style="color:var(--primary);">#${item.id}-C${item.idx+1}</b></td>
+                    <td>${item.wh}</td>
+                    <td><b>${colSeq}</b></td>
+                    <td>${colOrdem}</td>
+                    <td>${colLista}</td>
+                    <td><button class="btn-finalizar" style="background:var(--whc); color:#fff;" onclick="mudarStatus(${item.id},${item.idx},'CT')">→ CT</button></td>
+                </tr>`;
+            }).join('') : `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Nenhum carro na fila</td></tr>`;
+        }
+
+        function renderRotaInterna() {
+            const tableL = document.getElementById("table-rota-interna-l");
+            const tableCT = document.getElementById("table-rota-interna-ct");
+            if (!tableL || !tableCT) return;
+
+            let itemsL = [];
+            let itemsCT = [];
+
+            Object.values(CARROS).forEach(c => {
+                const totalL = c.status.filter(s => s === 'L').length;
+                const rowClass = totalL < 2 ? 'warning-blink' : '';
+                const wh = getCarWH(c);
+
+                c.status.forEach((st, i) => {
+                    const prog = obterProgramacaoUnicaDoCarro(c.id, i);
+                    if (st === 'L') {
+                        // Retirada L -> VT sem dados de sequencial
+                        itemsL.push({ id: c.id, idx: i, wh: wh, rowClass: rowClass });
+                    } else if (st === 'CT') {
+                        // Entrega CT -> L com dados completos
+                        itemsCT.push({ id: c.id, idx: i, wh: wh, prog: prog, rowClass: rowClass });
+                    }
+                });
+            });
+
+            // L ordenado por ID do carro
+            itemsL.sort((a, b) => a.id - b.id || a.idx - b.idx);
+
+            // CT ordenado por menor sequencial
+            itemsCT.sort((a, b) => {
+                const seqA = a.prog ? extrairNumeroSequencial(a.prog.sequencial) : Infinity;
+                const seqB = b.prog ? extrairNumeroSequencial(b.prog.sequencial) : Infinity;
+                return seqA - seqB;
+            });
+
+            // Retirada L -> VT: apenas Carro, WH e Ação
+            tableL.innerHTML = itemsL.length > 0 ? itemsL.map(item => {
+                return `<tr>
+                    <td><b style="color:var(--primary);">#${item.id}-C${item.idx+1}</b></td>
+                    <td>${item.wh}</td>
+                    <td><button class="btn-finalizar" style="background:var(--vt); color:#fff;" onclick="mudarStatus(${item.id},${item.idx},'VT')">→ VT</button></td>
+                </tr>`;
+            }).join('') : `<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">Nenhum carro na fila</td></tr>`;
+
+            // Entrega CT -> L: Carro, WH, Sequencial, Ordem, Lista e Ação direta
+            tableCT.innerHTML = itemsCT.length > 0 ? itemsCT.map(item => {
+                const colSeq = item.prog ? escaparHTML(item.prog.sequencial) : "-";
+                const colOrdem = item.prog ? `<span style="font-family: monospace; color: #0284c7; font-weight: 700;">${escaparHTML(item.prog.ordem)}</span>` : "-";
+                const colLista = item.prog ? `<span style="background:var(--bg-card-hover); padding: 3px 8px; border-radius: 4px; font-size: 12px; border: 1px solid var(--border-color); font-weight: 600;">${escaparHTML(item.prog.lista)}</span>` : "-";
+
+                return `<tr class="${item.rowClass}">
+                    <td><b style="color:var(--primary);">#${item.id}-C${item.idx+1}</b></td>
+                    <td>${item.wh}</td>
+                    <td><b>${colSeq}</b></td>
+                    <td>${colOrdem}</td>
+                    <td>${colLista}</td>
+                    <td>
+                        <button class="btn-finalizar" style="background:var(--linha-l); color:#fff;" onclick="concluirLinhaEremoverProgramacao(${item.id},${item.idx})">
+                            → LINHA
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('') : `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Nenhum carro na fila</td></tr>`;
         }
     </script>
 </body>
