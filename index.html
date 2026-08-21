@@ -1265,14 +1265,33 @@
         function renderMapa() {
             const root = document.getElementById("map-root");
             const STATIONS = [{id:"LC3010", x:320, y:20, w:150, h:70}, {id:"LC3010B", x:470, y:20, w:140, h:70}, {id:"LC3020", x:320, y:90, w:150, h:80}, {id:"LC3030", x:320, y:170, w:150, h:80}, {id:"LC3040", x:320, y:250, w:150, h:80}, {id:"LC30-Quality", x:320, y:330, w:150, h:80}, {id:"Qualidade Backhoe", x:320, y:410, w:300, h:80, c:"st-gray"}, {id:"Qualidade Loader", x:320, y:490, w:300, h:80, c:"st-gray"}, {id:"LC10-Quality", x:320, y:570, w:150, h:80, c:"st-gray"}, {id:"LC1040", x:320, y:650, w:150, h:80, c:"st-gray"}, {id:"LC1030", x:320, y:730, w:150, h:80, c:"st-gray"}, {id:"LC1020", x:320, y:810, w:150, h:80, c:"st-gray"}, {id:"LC1010", x:320, y:890, w:150, h:70, c:"st-gray"}, {id:"LC1010B", x:470, y:890, w:140, h:70, c:"st-gray"}];
-            const SLOT_COORDS = [[640,20], [210,100], [480,115], [210,195], [530,270], [210,285], [210,430], [650,420], [210,530], [210,625], [490,685], [490,775], [210,890]];
-            const carList = Object.values(CARROS).sort((a,b) => a.id - b.id);
+            
+            const CAR_POSITIONS = {
+                // Lado direito
+                260: [630, 20],   // lado direito superior do LC3010B
+                264: [485, 95],   // abaixo de LC3010B
+                267: [485, 175],  // ao lado direito do LC3030
+                388: [485, 650],  // lado direito do LC1040
+                266: [485, 735],  // abaixo do #388
+
+                // Lado esquerdo
+                253: [190, 95],   // ao lado esquerdo do LC3020
+                258: [190, 175],  // ao lado esquerdo do LC3030
+                255: [190, 255],  // ao lado esquerdo do LC3040
+                256: [190, 415],  // ao lado esquerdo da Qualidade Backhoe
+                367: [190, 650],  // ao lado esquerdo do LC1040
+                262: [190, 735],  // ao lado esquerdo acima do 261 (LC1030/LC1020)
+                261: [190, 815],  // ao lado esquerdo do LC1020
+                259: [190, 895]   // ao lado esquerdo do LC1010
+            };
 
             root.innerHTML = STATIONS.map(s => `<div class="map-station-box ${s.c||''}" style="left:${s.x}px; top:${s.y}px; width:${s.w}px; height:${s.h}px;">${s.id}</div>`).join('');
             
-            carList.forEach((car, index) => {
-                if (index >= SLOT_COORDS.length) return;
-                const pos = SLOT_COORDS[index];
+            Object.values(CARROS).forEach(car => {
+                const carIdNorm = String(car.id).replace(/^#/, '').trim();
+                const pos = CAR_POSITIONS[carIdNorm] || CAR_POSITIONS[car.id];
+                if (!pos) return;
+
                 const totalL = car.status.filter(s => s === 'L').length;
                 const showC1 = totalL >= 1;
                 const showC2 = totalL >= 2;
