@@ -1312,19 +1312,24 @@
             let cVT = 0, cWHV = 0;
             let hVT = "", hCT = "", hWHV = "", hWHC = "";
 
-            Object.values(CARROS).forEach(car => car.status.forEach((st, idx) => {
-                if (st === 'VT') {
-                    cVT++;
-                    hVT += `<div class="sup-card" style="border-left-color:var(--vt)"><span>#${car.id}-C${idx+1} <br><small>${car.desc}</small></span><span class="sup-badge" style="background:var(--vt)">VT</span></div>`;
-                } else if (st === 'CT') {
-                    hCT += `<div class="sup-card" style="border-left-color:var(--ct)"><span>#${car.id}-C${idx+1} <br><small>${car.desc}</small></span><span class="sup-badge" style="background:var(--ct)">CT</span></div>`;
-                } else if (st === 'WHV') {
-                    cWHV++;
-                    hWHV += `<div class="sup-card" style="border-left-color:var(--whv)"><span>#${car.id}-C${idx+1} <br><small>${car.desc}</small></span><span class="sup-badge" style="background:var(--whv)">WHV</span></div>`;
-                } else if (st === 'WHC') {
-                    hWHC += `<div class="sup-card" style="border-left-color:var(--whc)"><span>#${car.id}-C${idx+1} <br><small>${car.desc}</small></span><span class="sup-badge" style="background:var(--whc)">WHC</span></div>`;
-                }
-            }));
+            Object.values(CARROS).forEach(car => {
+                const totalL = car.status.filter(s => s === 'L').length;
+                const cardClass = totalL < 2 ? 'warning-blink' : '';
+
+                car.status.forEach((st, idx) => {
+                    if (st === 'VT') {
+                        cVT++;
+                        hVT += `<div class="sup-card" style="border-left-color:var(--vt)"><span>#${car.id}-C${idx+1} <br><small>${car.desc}</small></span><span class="sup-badge" style="background:var(--vt)">VT</span></div>`;
+                    } else if (st === 'CT') {
+                        hCT += `<div class="sup-card ${cardClass}" style="border-left-color:var(--ct)"><span>#${car.id}-C${idx+1} <br><small>${car.desc}</small></span><span class="sup-badge" style="background:var(--ct)">CT</span></div>`;
+                    } else if (st === 'WHV') {
+                        cWHV++;
+                        hWHV += `<div class="sup-card" style="border-left-color:var(--whv)"><span>#${car.id}-C${idx+1} <br><small>${car.desc}</small></span><span class="sup-badge" style="background:var(--whv)">WHV</span></div>`;
+                    } else if (st === 'WHC') {
+                        hWHC += `<div class="sup-card ${cardClass}" style="border-left-color:var(--whc)"><span>#${car.id}-C${idx+1} <br><small>${car.desc}</small></span><span class="sup-badge" style="background:var(--whc)">WHC</span></div>`;
+                    }
+                });
+            });
 
             if (vtDiv) vtDiv.innerHTML = hVT || `<div style="text-align:center; color:var(--text-muted); padding:10px; font-size:12px;">Nenhum</div>`;
             if (ctDiv) ctDiv.innerHTML = hCT || `<div style="text-align:center; color:var(--text-muted); padding:10px; font-size:12px;">Nenhum</div>`;
@@ -1467,18 +1472,23 @@
             let itemsVT = [];
             let itemsWHC = [];
 
-            Object.values(CARROS).forEach(c => c.status.forEach((st, i) => {
+            Object.values(CARROS).forEach(c => {
+                const totalL = c.status.filter(s => s === 'L').length;
+                const rowClass = totalL < 2 ? 'warning-blink' : '';
                 const wh = getCarWH(c);
-                const prog = obterProgramacaoUnicaDoCarro(c.id, i);
 
-                if (st === 'VT') {
-                    // Vazios (VT -> WHV) sem necessidade de sequencial
-                    itemsVT.push({ id: c.id, idx: i, wh: wh });
-                } else if (st === 'WHC') {
-                    // Cheios (WHC -> CT) com dados de programação
-                    itemsWHC.push({ id: c.id, idx: i, wh: wh, prog: prog });
-                }
-            }));
+                c.status.forEach((st, i) => {
+                    const prog = obterProgramacaoUnicaDoCarro(c.id, i);
+
+                    if (st === 'VT') {
+                        // Vazios (VT -> WHV) sem necessidade de sequencial
+                        itemsVT.push({ id: c.id, idx: i, wh: wh });
+                    } else if (st === 'WHC') {
+                        // Cheios (WHC -> CT) com dados de programação
+                        itemsWHC.push({ id: c.id, idx: i, wh: wh, prog: prog, rowClass: rowClass });
+                    }
+                });
+            });
 
             // VT ordenado por ID do carro
             itemsVT.sort((a, b) => a.id - b.id || a.idx - b.idx);
@@ -1505,7 +1515,7 @@
                 const colOrdem = item.prog ? `<span style="font-family: monospace; color: #0284c7; font-weight: 700;">${escaparHTML(item.prog.ordem)}</span>` : "-";
                 const colLista = item.prog ? `<span style="background:var(--bg-card-hover); padding: 3px 8px; border-radius: 4px; font-size: 12px; border: 1px solid var(--border-color); font-weight: 600;">${escaparHTML(item.prog.lista)}</span>` : "-";
 
-                return `<tr>
+                return `<tr class="${item.rowClass}">
                     <td><b style="color:var(--primary);">#${item.id}-C${item.idx+1}</b></td>
                     <td>${item.wh}</td>
                     <td><b>${colSeq}</b></td>
